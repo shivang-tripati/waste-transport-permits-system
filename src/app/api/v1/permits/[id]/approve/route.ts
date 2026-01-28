@@ -1,0 +1,110 @@
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import { authenticate, hasPermission } from '@/lib/auth';
+import {
+    createSuccessResponse,
+    createErrorResponse,
+    CommonErrors,
+} from '@/lib/api';
+import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
+import { approvePermitSchema } from '@/schemas';
+
+interface RouteParams {
+    params: Promise<{ id: string }>;
+}
+
+export async function POST(request: NextRequest, { params }: RouteParams) {
+    try {
+        const { id } = await params;
+
+        // Authenticate
+        const authResult = await authenticate(request);
+        if (!authResult.success) {
+            return authResult.response;
+        }
+
+        const { user } = authResult;
+
+        // Check permission
+        if (!hasPermission(user.role, 'permit:approve')) {
+            return createErrorResponse(
+                CommonErrors.forbidden('You do not have permission to approve permits')
+            );
+        }
+
+        const body = await request.json();
+
+        // Validate input
+        const validation = approvePermitSchema.safeParse(body);
+        if (!validation.success) {
+            return createErrorResponse(
+                CommonErrors.validationError(validation.error.flatten().fieldErrors)
+            );
+        }
+
+        // Get existing permit
+        const existingPermit = await prisma.permit.findUnique({
+            where: { id },
+        });
+
+        if (!existingPermit) {
+            return createErrorResponse(CommonErrors.notFound('Permit'));
+        }
+
+        // Can only approve SUBMITTED or UNDER_REVIEW permits
+        if (!['SUBMITTED', 'UNDER_REVIEW'].includes(existingPermit.status)) {
+            return createErrorResponse(
+                CommonErrors.badRequest('Can only approve permits in SUBMITTED or UNDER_REVIEW status')
+            );
+        }
+
+        const data = validation.data;
+
+        // Set default validity (24 hours from now if not specified)
+        const validFrom = data.validFrom ? new Date(data.validFrom) : new Date();
+        const validUntil = new Date(data.validUntil);
+
+        // Validate validity period
+        if (validUntil <= validFrom) {
+            return createErrorResponse(
+                CommonErrors.badRequest('Valid until must be after valid from')
+            );
+        }
+
+        // Update permit to APPROVED
+        const permit = await prisma.permit.update({
+            where: { id },
+            data: {
+                status: 'APPROVED',
+                validFrom,
+                validUntil,
+                approvedByUserId: user.userId,
+                approvedAt: new Date(),
+                updatedByUserId: user.userId,
+            },
+            include: {
+                project: { select: { id: true, name: true } },
+                plant: { select: { id: true, name: true, code: true } },
+                user: { select: { id: true, name: true, email: true } },
+                approvedBy: { select: { id: true, name: true } },
+            },
+        });
+
+        // Create audit log
+        await createAuditLog({
+            entityType: 'PERMIT',
+            entityId: permit.id,
+            action: 'APPROVED',
+            performedByUserId: user.userId,
+            previousState: { status: existingPermit.status },
+            newState: { status: permit.status, validFrom, validUntil },
+            ipAddress: getClientIP(request.headers),
+            userAgent: getUserAgent(request.headers),
+        });
+
+        return createSuccessResponse(permit);
+    } catch (error) {
+        console.error('Approve permit error:', error);
+        return createErrorResponse(error);
+    }
+}

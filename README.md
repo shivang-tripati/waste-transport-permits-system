@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Transport Permit System
+
+A full-stack digital transport permit management system for C&D (Construction & Demolition) waste transport.
+
+## Features
+
+- **User Management**: JWT-based authentication with role-based access control (Admin, Company User, Individual)
+- **Permit Lifecycle**: Create, submit, approve, reject, and track transport permits
+- **QR Verification**: Public verification page for permit validation without login
+- **Weighment Tracking**: Record waste weights at destination plants with payment tracking
+- **Audit Trail**: Full audit logging for compliance and dispute resolution
+
+## Tech Stack
+
+- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: PostgreSQL
+- **Validation**: Zod schemas for API input validation
+- **Data Fetching**: TanStack Query (React Query)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+
+- Docker (for PostgreSQL) or a PostgreSQL instance
+
+### Setup
+
+1. **Clone and install dependencies**:
+   ```bash
+   cd transport-permit-system
+   npm install
+   ```
+
+2. **Start PostgreSQL** (using Docker):
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+4. **Run database migrations**:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+5. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000)
+
+## Project Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/             # Auth pages (login, register)
+│   ├── admin/              # Admin dashboard
+│   ├── dashboard/          # User dashboard
+│   ├── verify/             # Public verification page
+│   └── api/v1/             # API routes
+├── components/ui/          # Reusable UI components
+├── hooks/                  # React hooks (useAuth, usePermits)
+├── lib/
+│   ├── api/                # API utilities (response, audit)
+│   ├── auth/               # Auth utilities (jwt, rbac, middleware)
+│   ├── db/                 # Database client
+│   └── query/              # TanStack Query provider
+└── schemas/                # Zod validation schemas
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API Endpoints
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Authentication
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - Login
+- `POST /api/v1/auth/refresh` - Refresh token
+- `POST /api/v1/auth/logout` - Logout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Permits
+- `GET /api/v1/permits` - List permits (paginated, filterable)
+- `POST /api/v1/permits` - Create permit
+- `GET /api/v1/permits/:id` - Get permit details
+- `PATCH /api/v1/permits/:id` - Update permit
+- `POST /api/v1/permits/:id/submit` - Submit for approval
+- `POST /api/v1/permits/:id/approve` - Approve permit (admin)
+- `POST /api/v1/permits/:id/reject` - Reject permit (admin)
 
-## Learn More
+### Public
+- `GET /api/v1/verify?token=xxx` - Verify permit (no auth required)
 
-To learn more about Next.js, take a look at the following resources:
+## Development Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### OTP in Development
+OTP verification uses mock code `123456` in development mode. For production, configure SMS gateway (Twilio/MSG91) in environment variables.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Database Schema
+See `prisma/schema.prisma` for the complete data model including:
+- Users, Companies, Projects, Plants
+- Permits with full status workflow
+- Weighments with embedded payment fields
+- Audit logs for compliance
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
