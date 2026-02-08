@@ -379,9 +379,14 @@ model Weighment {
   plant             Plant            @relation(fields: [plantId], references: [id])
   
   // Weighment data
-  grossWeight       Float?           // kg
-  tareWeight        Float?           // kg
-  netWeight         Float?           // kg (calculated: gross - tare)
+  firstWeight       Float?
+  firstWeighmentAt  DateTime?        @db.Timestamptz(6)
+  secondWeight      Float?
+  secondWeighmentAt DateTime?        @db.Timestamptz(6)
+  netWeight         Float?           // kg (calculated: second - first or absolute difference)
+  
+  // Evidence
+  fileUrl           String?          // URL for weighment slip PDF
   
   // Status
   status            WeighmentStatus  @default(PENDING)

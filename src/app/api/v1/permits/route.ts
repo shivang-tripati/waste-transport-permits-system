@@ -122,16 +122,18 @@ export async function POST(request: NextRequest) {
         // Validate input
         const validation = createPermitSchema.safeParse(body);
         if (!validation.success) {
+            console.error("ZOD ERROR:", validation.error.format());
             return createErrorResponse(
                 CommonErrors.validationError(validation.error.flatten().fieldErrors)
             );
         }
 
         const data = validation.data;
+        let project = null
 
         // Verify project if provided
         if (data.projectId) {
-            const project = await prisma.project.findUnique({
+            project = await prisma.project.findUnique({
                 where: { id: data.projectId },
                 include: { company: true },
             });
@@ -167,7 +169,12 @@ export async function POST(request: NextRequest) {
                 estimatedVolume: data.estimatedVolume ?? null,
                 wasteDescription: data.wasteDescription ?? null,
                 projectId: data.projectId ?? null,
-                companyId: data.companyId ?? null,
+                companyId:
+                    user.role === 'COMPANY_USER'
+                        ? user.companyId
+                        : data.projectId
+                            ? project?.companyId ?? null
+                            : null,
 
                 plantId: data.plantId,
 
@@ -178,11 +185,12 @@ export async function POST(request: NextRequest) {
 
                 driverName: data.driverName ?? null,
                 driverPhone: data.driverPhone ?? null,
+                licenseNumber: data.licenseNumber ?? null,
                 vehicleNumber: data.vehicleNumber ?? null,
                 vehicleType: data.vehicleType ?? null,
 
-                validFrom: data.validFrom ? new Date(data.validFrom) : null,
-                validUntil: data.validUntil ? new Date(data.validUntil) : null,
+                validFrom: data.validFrom,
+                validUntil: data.validUntil,
 
                 userId: user.userId,
                 status: 'DRAFT',

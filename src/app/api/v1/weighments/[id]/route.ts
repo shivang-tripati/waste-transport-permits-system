@@ -114,19 +114,32 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         const data = validation.data;
 
-        // Calculate net weight
-        const grossWeight = data.grossWeight ?? existing.grossWeight;
-        const tareWeight = data.tareWeight ?? existing.tareWeight;
-        const netWeight = grossWeight && tareWeight ? grossWeight - tareWeight : null;
+        // Calculate net weight and handle timestamps
+        const firstWeight = data.firstWeight ?? existing.firstWeight;
+        const secondWeight = data.secondWeight ?? existing.secondWeight;
+        let netWeight = null;
+        if (firstWeight !== null && secondWeight !== null) {
+            netWeight = Math.abs(secondWeight - firstWeight);
+        }
+
+        const updateData: any = {
+            ...data,
+            netWeight,
+            updatedByUserId: user.userId,
+        };
+
+        // Update timestamps if weights are new
+        if (data.firstWeight !== undefined && data.firstWeight !== null && !existing.firstWeighmentAt) {
+            updateData.firstWeighmentAt = new Date();
+        }
+        if (data.secondWeight !== undefined && data.secondWeight !== null && !existing.secondWeighmentAt) {
+            updateData.secondWeighmentAt = new Date();
+        }
 
         // Update weighment
         const weighment = await prisma.weighment.update({
             where: { id },
-            data: {
-                ...data,
-                netWeight,
-                updatedByUserId: user.userId,
-            },
+            data: updateData,
             include: {
                 permit: { select: { id: true, permitNumber: true } },
                 plant: { select: { id: true, name: true, code: true } },
@@ -139,7 +152,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             entityId: weighment.id,
             action: 'UPDATED',
             performedByUserId: user.userId,
-            previousState: { grossWeight: existing.grossWeight, tareWeight: existing.tareWeight },
+            previousState: {
+                firstWeight: existing.firstWeight,
+                secondWeight: existing.secondWeight,
+                fileUrl: existing.fileUrl
+            },
             newState: data,
             ipAddress: getClientIP(request.headers),
             userAgent: getUserAgent(request.headers),

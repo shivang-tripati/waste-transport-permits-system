@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton } from '@/components/ui';
+import { get } from '@/lib/api/client';
 
 interface UserStats {
   totalPermits: number;
@@ -25,16 +26,12 @@ export default function UserDashboardPage() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [recentPermits, setRecentPermits] = useState<RecentPermit[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     // Load stats and recent permits
-    const token = localStorage.getItem('accessToken');
-    
-    fetch('/api/v1/permits?limit=5', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((result) => {
+    const fetchData = async () => {
+      try {
+        const result = await get<RecentPermit[]>('/permits', { limit: 5 });
         if (result.success) {
           setRecentPermits(result.data || []);
           // Calculate stats from response
@@ -46,10 +43,14 @@ export default function UserDashboardPage() {
             completedThisMonth: permits.filter((p: RecentPermit) => p.status === 'COMPLETED').length,
           });
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
-  
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -67,14 +68,14 @@ export default function UserDashboardPage() {
       </div>
     );
   }
-  
+
   const statCards = [
     { label: 'Total Permits', value: stats?.totalPermits || 0, color: 'text-blue-600' },
     { label: 'Active', value: stats?.activePermits || 0, color: 'text-green-600' },
     { label: 'Pending Approval', value: stats?.pendingApproval || 0, color: 'text-yellow-600' },
     { label: 'Completed', value: stats?.completedThisMonth || 0, color: 'text-purple-600' },
   ];
-  
+
   return (
     <div className="space-y-6">
       {/* Welcome */}
@@ -84,7 +85,7 @@ export default function UserDashboardPage() {
         </h1>
         <p className="text-gray-500">Here's what's happening with your permits.</p>
       </div>
-      
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statCards.map((stat, i) => (
@@ -96,7 +97,7 @@ export default function UserDashboardPage() {
           </Card>
         ))}
       </div>
-      
+
       {/* Quick Actions */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -104,7 +105,7 @@ export default function UserDashboardPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link 
+            <Link
               href="/dashboard/permits/new"
               className="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
@@ -123,8 +124,8 @@ export default function UserDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
-            
-            <Link 
+
+            <Link
               href="/dashboard/permits"
               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -145,7 +146,7 @@ export default function UserDashboardPage() {
             </Link>
           </CardContent>
         </Card>
-        
+
         {/* Recent Permits */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

@@ -12,7 +12,7 @@ export default function WeighmentsPage() {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['weighments', page, search],
-    queryFn: () => get<any>(`/weighments?page=${page}&limit=10&search=${search}`),
+    queryFn: () => get<any>('/weighments', { page, limit: 10, search }),
   });
 
   const handleSearch = (e: React.FormEvent) => {

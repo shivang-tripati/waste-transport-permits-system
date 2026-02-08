@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton, SkeletonTable } from '@/components/ui';
+import { get } from '@/lib/api/client';
 
 interface Permit {
   id: string;
@@ -28,37 +29,36 @@ interface PaginationMeta {
 function PermitsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [permits, setPermits] = useState<Permit[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const currentStatus = searchParams.get('status') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
-  
+
   useEffect(() => {
     setLoading(true);
-    
-    const params = new URLSearchParams();
-    params.set('page', String(currentPage));
-    params.set('limit', '10');
-    if (currentStatus) params.set('status', currentStatus);
-    
-    const token = localStorage.getItem('accessToken');
-    
-    fetch(`/api/v1/permits?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((result) => {
+
+    const fetchPermits = async () => {
+      try {
+        const result = await get<Permit[]>('/permits', {
+          page: currentPage,
+          limit: 10,
+          status: currentStatus || undefined
+        });
         if (result.success) {
           setPermits(result.data || []);
-          setPagination(result.pagination);
+          setPagination(result.pagination || null);
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPermits();
   }, [currentStatus, currentPage]);
-  
+
   const statusFilters = [
     { label: 'All', value: '' },
     { label: 'Submitted', value: 'SUBMITTED' },
@@ -68,7 +68,7 @@ function PermitsContent() {
     { label: 'Completed', value: 'COMPLETED' },
     { label: 'Rejected', value: 'REJECTED' },
   ];
-  
+
   const setStatusFilter = (status: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (status) {
@@ -79,7 +79,7 @@ function PermitsContent() {
     params.set('page', '1');
     router.push(`/admin/permits?${params.toString()}`);
   };
-  
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -88,17 +88,16 @@ function PermitsContent() {
           <button
             key={filter.value}
             onClick={() => setStatusFilter(filter.value)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              currentStatus === filter.value
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentStatus === filter.value
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             {filter.label}
           </button>
         ))}
       </div>
-      
+
       {/* Permits Table */}
       <Card>
         <CardHeader>
@@ -129,19 +128,19 @@ function PermitsContent() {
                   {permits.map((permit) => (
                     <tr key={permit.id} className="border-b last:border-0 hover:bg-gray-50">
                       <td className="py-3">
-                        <span className="font-mono text-sm">{permit.permitNumber}</span>
+                        <span className="font-mono text-sm">{permit?.permitNumber}</span>
                       </td>
                       <td className="py-3">
                         <StatusBadge status={permit.status} />
                       </td>
                       <td className="py-3">
                         <div>
-                          <p className="font-medium text-sm">{permit.project.name}</p>
-                          <p className="text-xs text-gray-500">{permit.project.city}</p>
+                          <p className="font-medium text-sm">{permit?.project?.name}</p>
+                          <p className="text-xs text-gray-500">{permit?.project?.city}</p>
                         </div>
                       </td>
                       <td className="py-3">
-                        <span className="text-sm">{permit.plant.name}</span>
+                        <span className="text-sm">{permit?.plant?.name}</span>
                       </td>
                       <td className="py-3">
                         <span className="text-sm">{permit.driverName || '-'}</span>
@@ -162,7 +161,7 @@ function PermitsContent() {
               </table>
             </div>
           )}
-          
+
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-4 pt-4 border-t">

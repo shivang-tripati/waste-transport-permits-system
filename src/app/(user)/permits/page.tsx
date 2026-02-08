@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton, SkeletonTable } from '@/components/ui';
+import { get } from '@/lib/api/client';
 
 interface Permit {
   id: string;
@@ -28,37 +29,36 @@ interface PaginationMeta {
 function PermitsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [permits, setPermits] = useState<Permit[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const currentStatus = searchParams.get('status') || '';
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
-  
+
   useEffect(() => {
     setLoading(true);
-    
-    const params = new URLSearchParams();
-    params.set('page', String(currentPage));
-    params.set('limit', '10');
-    if (currentStatus) params.set('status', currentStatus);
-    
-    const token = localStorage.getItem('accessToken');
-    
-    fetch(`/api/v1/permits?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((result) => {
+
+    const fetchPermits = async () => {
+      try {
+        const result = await get<Permit[]>('/permits', {
+          page: currentPage,
+          limit: 10,
+          status: currentStatus || undefined
+        });
         if (result.success) {
           setPermits(result.data || []);
-          setPagination(result.pagination);
+          setPagination(result.pagination || null);
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPermits();
   }, [currentStatus, currentPage]);
-  
+
   const statusFilters = [
     { label: 'All', value: '' },
     { label: 'Submitted', value: 'SUBMITTED' },
@@ -68,7 +68,7 @@ function PermitsContent() {
     { label: 'Completed', value: 'COMPLETED' },
     { label: 'Rejected', value: 'REJECTED' },
   ];
-  
+
   const setStatusFilter = (status: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (status) {
@@ -79,7 +79,7 @@ function PermitsContent() {
     params.set('page', '1');
     router.push(`/admin/permits?${params.toString()}`);
   };
-  
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -88,17 +88,24 @@ function PermitsContent() {
           <button
             key={filter.value}
             onClick={() => setStatusFilter(filter.value)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              currentStatus === filter.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentStatus === filter.value
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             {filter.label}
           </button>
         ))}
       </div>
-      
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">My Permits</h1>
+        <Link href="/dashboard/permits/new">
+          <Button>+ New Permit</Button>
+        </Link>
+      </div>
+
       {/* Permits Table */}
       <Card>
         <CardHeader>
@@ -136,12 +143,12 @@ function PermitsContent() {
                       </td>
                       <td className="py-3">
                         <div>
-                          <p className="font-medium text-sm">{permit.project.name}</p>
-                          <p className="text-xs text-gray-500">{permit.project.city}</p>
+                          <p className="font-medium text-sm">{permit?.project?.name}</p>
+                          <p className="text-xs text-gray-500">{permit?.project?.city}</p>
                         </div>
                       </td>
                       <td className="py-3">
-                        <span className="text-sm">{permit.plant.name}</span>
+                        <span className="text-sm">{permit?.plant?.name}</span>
                       </td>
                       <td className="py-3">
                         <span className="text-sm">{permit.driverName || '-'}</span>
@@ -152,7 +159,7 @@ function PermitsContent() {
                         </span>
                       </td>
                       <td className="py-3">
-                        <Link href={`/admin/permits/${permit.id}`}>
+                        <Link href={`/dashboard/permits/${permit.id}`}>
                           <Button size="sm" variant="ghost">View</Button>
                         </Link>
                       </td>
@@ -162,7 +169,7 @@ function PermitsContent() {
               </table>
             </div>
           )}
-          
+
           {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex justify-between items-center mt-4 pt-4 border-t">
@@ -179,7 +186,7 @@ function PermitsContent() {
                   onClick={() => {
                     const params = new URLSearchParams(searchParams.toString());
                     params.set('page', String(pagination.page - 1));
-                    router.push(`/admin/permits?${params.toString()}`);
+                    router.push(`/dashboard/permits?${params.toString()}`);
                   }}
                 >
                   Previous
@@ -191,7 +198,7 @@ function PermitsContent() {
                   onClick={() => {
                     const params = new URLSearchParams(searchParams.toString());
                     params.set('page', String(pagination.page + 1));
-                    router.push(`/admin/permits?${params.toString()}`);
+                    router.push(`/dashboard/permits?${params.toString()}`);
                   }}
                 >
                   Next

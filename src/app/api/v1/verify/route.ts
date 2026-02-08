@@ -99,8 +99,8 @@ export async function GET(request: NextRequest) {
                         id: true,
                         weighmentNumber: true,
                         status: true,
-                        grossWeight: true,
-                        tareWeight: true,
+                        firstWeight: true,
+                        secondWeight: true,
                         netWeight: true,
                         weighedAt: true,
                         plant: {

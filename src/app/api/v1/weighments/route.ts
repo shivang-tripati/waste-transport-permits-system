@@ -154,10 +154,13 @@ export async function POST(request: NextRequest) {
             return createErrorResponse(CommonErrors.notFound('Plant'));
         }
 
-        // Calculate net weight if both gross and tare provided
-        const netWeight = data.grossWeight && data.tareWeight
-            ? data.grossWeight - data.tareWeight
-            : null;
+        // Calculate net weight
+        const firstWeight = data.firstWeight ?? null;
+        const secondWeight = data.secondWeight ?? null;
+        let netWeight = null;
+        if (firstWeight !== null && secondWeight !== null) {
+            netWeight = Math.abs(secondWeight - firstWeight);
+        }
 
         // Create weighment
         const weighment = await prisma.weighment.create({
@@ -165,9 +168,12 @@ export async function POST(request: NextRequest) {
                 weighmentNumber: generateWeighmentNumber(),
                 permitId: data.permitId,
                 plantId: data.plantId,
-                grossWeight: data.grossWeight,
-                tareWeight: data.tareWeight,
+                firstWeight,
+                firstWeighmentAt: firstWeight !== null ? new Date() : null,
+                secondWeight,
+                secondWeighmentAt: secondWeight !== null ? new Date() : null,
                 netWeight,
+                fileUrl: data.fileUrl ?? null,
                 notes: data.notes,
                 weighedAt: new Date(),
             },

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks';
 import { cn } from '@/lib/cn';
 import { Button } from '@/components/ui';
@@ -58,7 +59,17 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  
+
+  // Fetch full profile to check identity docs
+  const { data: profileResponse } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => fetch('/api/v1/profile').then(res => res.json()),
+    enabled: !!user
+  });
+
+  const profile = profileResponse?.success ? profileResponse.data : null;
+  const hasIdentityDocs = profile?.identityDocuments?.length >= 2;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
@@ -67,12 +78,12 @@ export default function DashboardLayout({
           <Link href="/" className="flex items-center">
             <span className="text-xl font-bold text-blue-600">TPS</span>
           </Link>
-          
+
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || 
+              const isActive = pathname === item.href ||
                 (item.href !== '/dashboard' && pathname.startsWith(item.href));
-              
+
               return (
                 <Link
                   key={item.href}
@@ -90,7 +101,7 @@ export default function DashboardLayout({
               );
             })}
           </nav>
-          
+
           <div className="flex items-center gap-3">
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
@@ -102,11 +113,11 @@ export default function DashboardLayout({
           </div>
         </div>
       </header>
-      
+
       {/* Main content */}
-      <main className="pt-16">
-        <div className="max-w-7xl mx-auto p-6">
-          {/* Onboarding Banner */}
+      <main>
+        <div className="max-w-7xl mx-auto p-4 pt-20">
+          {/* Onboarding Banner - Company */}
           {user && user.role === 'COMPANY_USER' && !user.companyId && pathname !== '/dashboard/profile' && !pathname.includes('onboarding') && (
             <div className="mb-6 bg-red-50 border border-red-200 p-4 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -128,17 +139,39 @@ export default function DashboardLayout({
             </div>
           )}
 
+          {/* Onboarding Banner - Individual */}
+          {user && user.role === 'INDIVIDUAL' && !hasIdentityDocs && pathname !== '/dashboard/profile' && !pathname.includes('onboarding') && (
+            <div className="mb-6 bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-900">Verification Required</p>
+                  <p className="text-sm text-amber-700">Please upload your Aadhaar and PAN card to verify your identity and start creating permits.</p>
+                </div>
+              </div>
+              <Link href="/onboarding/profile">
+                <Button variant="outline" size="sm" className="bg-white border-amber-200 text-amber-700 hover:bg-amber-50">
+                  Verify Now
+                </Button>
+              </Link>
+            </div>
+          )}
+
           {children}
         </div>
       </main>
-      
+
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="flex justify-around py-2">
           {navItems.slice(0, 4).map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
-            
+
             return (
               <Link
                 key={item.href}

@@ -1,14 +1,14 @@
 import { prisma } from '@/lib/db';
-import { UserContext, EntityType, AuditAction } from '@prisma/client';
+import { EntityType, AuditAction } from '@prisma/client';
 
 export interface AuditLogParams {
     entityType: EntityType;
     entityId: string;
     action: AuditAction;
     performedByUserId: string;
-    metadata?: Record<string, unknown>;
-    previousState?: Record<string, unknown>;
-    newState?: Record<string, unknown>;
+    metadata?: Record<string, any>;
+    previousState?: Record<string, any>;
+    newState?: Record<string, any>;
     ipAddress?: string;
     userAgent?: string;
 }
@@ -24,9 +24,9 @@ export async function createAuditLog(params: AuditLogParams): Promise<void> {
                 entityId: params.entityId,
                 action: params.action,
                 performedByUserId: params.performedByUserId,
-                metadata: params.metadata ?? null,
-                previousState: params.previousState ?? null,
-                newState: params.newState ?? null,
+                metadata: params.metadata ?? null as any,
+                previousState: params.previousState ?? null as any,
+                newState: params.newState ?? null as any,
                 ipAddress: params.ipAddress ?? null,
                 userAgent: params.userAgent ?? null,
             },

@@ -1,28 +1,28 @@
 const steps = [
   {
     title: "Waste Generation at Site",
-    desc: "C&D waste is generated during construction or demolition activities."
+    desc: "C&D waste is generated during construction or demolition activities.",
   },
   {
     title: "Waste Documentation",
-    desc: "Waste details and photographic evidence are recorded digitally."
+    desc: "Waste details and photographic evidence are recorded digitally.",
   },
   {
     title: "Digital Permit Generation",
-    desc: "A time-bound digital transport permit is issued for the vehicle."
+    desc: "A time-bound digital transport permit is issued for the vehicle.",
   },
   {
     title: "Transportation",
-    desc: "Waste is transported via authorized vehicles and routes."
+    desc: "Waste is transported via authorized vehicles and routes.",
   },
   {
     title: "Verification",
-    desc: "Permit validity is verified using QR code or reference number."
+    desc: "Permit validity is verified using QR code or reference number.",
   },
   {
     title: "Delivery at Authorized Facility",
-    desc: "Waste is received, recorded, and processed at the facility."
-  }
+    desc: "Waste is received, recorded, and processed at the facility.",
+  },
 ];
 
 export default function SectionWorkflow() {
@@ -33,17 +33,19 @@ export default function SectionWorkflow() {
           End-to-End Waste Movement Workflow
         </h2>
 
-        <div className="border-l-2 border-l-primary border-gray-300 pl-6 space-y-6">
-          {steps.map((step, i) => (
-            <div key={i}>
-              <h4 className="font-medium text-gray-900">
-                {step.title}
-              </h4>
-              <p className="text-sm text-gray-600">
-                {step.desc}
-              </p>
-            </div>
-          ))}
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="border-l-2 border-l-primary border-gray-300 pl-6 space-y-6">
+            {steps.map((step, i) => (
+              <div key={i}>
+                <h4 className="font-medium text-gray-900">{step.title}</h4>
+                <p className="text-sm text-gray-600">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div>
+            {/* video to explain the workflow */}
+            {/* <video src=""></video> */}
+          </div>
         </div>
       </div>
     </section>

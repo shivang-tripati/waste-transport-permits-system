@@ -41,7 +41,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const hasAccess =
             user.role === 'ADMIN' ||
             permit.userId === user.userId ||
-            (user.companyId && user.companyId === permit.project.companyId);
+            (user.companyId && user.companyId === permit?.project?.companyId);
 
         if (!hasAccess) {
             return createErrorResponse(

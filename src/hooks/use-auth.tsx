@@ -30,11 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Check for existing auth on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    
+
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -44,59 +44,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsLoading(false);
   }, []);
-  
+
   const login = async (data: LoginInput) => {
     const response = await post<{ user: AuthUser }>(
       '/auth/login',
       data
     );
-    
+
     if (!response.success) {
       throw new Error(response.error?.message || 'Login failed');
     }
-    
+
     const { user: authUser } = response.data!;
-    
+
     localStorage.setItem('user', JSON.stringify(authUser));
-    
+
     setUser(authUser);
-    
+
     // Redirect based on role
+
     if (authUser.role === 'ADMIN') {
       router.push('/admin');
     } else {
       router.push('/dashboard');
     }
   };
-  
+
   const register = async (data: RegisterInput) => {
     const response = await post<{ user: AuthUser }>(
       '/auth/register',
       data
     );
-    
+
     if (!response.success) {
       throw new Error(response.error?.message || 'Registration failed');
     }
-    
+
     const { user: authUser } = response.data!;
-    
+
     localStorage.setItem('user', JSON.stringify(authUser));
-    
+
     setUser(authUser);
     router.push('/dashboard');
   };
-  
-  const logout = () => {
-    // Call logout API (fire and forget)
-    post('/auth/logout').catch(() => {});
-    
-    localStorage.removeItem('user');
-    
+
+  const logout = async () => {
+    try {
+      await fetch("/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+
+    // Clear local auth state
     setUser(null);
-    router.push('/login');
+
+    // 🔥 Notify the whole app
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth:logout"));
+    }
   };
-  
+
+
   return (
     <AuthContext.Provider
       value={{

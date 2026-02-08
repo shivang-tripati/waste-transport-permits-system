@@ -1,17 +1,17 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks';
-import { 
-    Card, 
-    CardHeader, 
-    CardTitle, 
-    CardContent, 
-    Button, 
-    Input, 
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+    Button,
+    Input,
     Skeleton,
-    StatusBadge
+    StatusBadge,
+    FileUpload
 } from '@/components/ui';
 import { get, patch, post } from '@/lib/api/client';
 import Link from 'next/link';
@@ -32,6 +32,7 @@ interface UserProfile {
     identityDocuments?: {
         type: 'AADHAAR' | 'PAN';
         documentNumber: string;
+        filePath?: string;
         isVerified: boolean;
     }[];
 }
@@ -57,12 +58,12 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
         setLoading(true);
         try {
-            const res = await get<UserProfile>('/api/v1/profile');
+            const res = await get<UserProfile>('/profile');
             if (res.success && res.data) {
                 setProfile(res.data);
                 setName(res.data.name);
                 setPhone(res.data.phone || '');
-                
+
                 // Set identity docs if present
                 const panDoc = res.data.identityDocuments?.find(d => d.type === 'PAN');
                 const aadhaarDoc = res.data.identityDocuments?.find(d => d.type === 'AADHAAR');
@@ -82,7 +83,7 @@ export default function ProfilePage() {
         setError(null);
         setSuccess(null);
         try {
-            const res = await patch<UserProfile>('/api/v1/profile', { name, phone });
+            const res = await patch<UserProfile>('/profile', { name, phone });
             if (res.success) {
                 setSuccess('Profile updated successfully');
                 // Update local storage user if needed
@@ -103,13 +104,17 @@ export default function ProfilePage() {
         }
     };
 
-    const handleUpdateIdentity = async (type: 'PAN' | 'AADHAAR', value: string) => {
+    const handleUpdateIdentity = async (type: 'PAN' | 'AADHAAR', value: string, filePath?: string) => {
         if (!value) return;
         setUpdating(true);
         setError(null);
         setSuccess(null);
         try {
-            const res = await post<any>('/api/v1/profile/identity', { type, documentNumber: value });
+            const res = await post<any>('/profile/identity', {
+                type,
+                documentNumber: value,
+                filePath
+            });
             if (res.success) {
                 setSuccess(`${type} updated successfully`);
                 fetchProfile(); // Refresh to get verification status
@@ -176,22 +181,22 @@ export default function ProfilePage() {
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleUpdateProfile} className="space-y-4">
-                                <Input 
-                                    label="Full Name" 
-                                    value={name} 
-                                    onChange={(e) => setName(e.target.value)} 
-                                    required 
+                                <Input
+                                    label="Full Name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
                                 />
-                                <Input 
-                                    label="Email Address" 
-                                    value={profile?.email || ''} 
-                                    disabled 
+                                <Input
+                                    label="Email Address"
+                                    value={profile?.email || ''}
+                                    disabled
                                     className="bg-gray-50"
                                 />
-                                <Input 
-                                    label="Phone Number" 
-                                    value={phone} 
-                                    onChange={(e) => setPhone(e.target.value)} 
+                                <Input
+                                    label="Phone Number"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
                                     placeholder="+91..."
                                 />
                                 <div className="flex items-center gap-4">
@@ -211,48 +216,22 @@ export default function ProfilePage() {
                                 <CardTitle>Identity Verification</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="flex items-end gap-3">
-                                        <div className="flex-1">
-                                            <Input 
-                                                label="PAN Number" 
-                                                value={pan} 
-                                                onChange={(e) => setPan(e.target.value.toUpperCase())}
-                                                placeholder="ABCDE1234F"
-                                            />
-                                        </div>
-                                        <Button 
-                                            variant="outline" 
-                                            onClick={() => handleUpdateIdentity('PAN', pan)}
-                                            disabled={updating}
-                                        >
-                                            Save
-                                        </Button>
-                                        <StatusBadge 
-                                            status={profile.identityDocuments?.find(d => d.type === 'PAN')?.isVerified ? 'APPROVED' : 'PENDING'} 
-                                        />
-                                    </div>
+                                <div className="space-y-8">
+                                    <IdentitySection
+                                        type="PAN"
+                                        label="PAN Card"
+                                        doc={profile.identityDocuments?.find(d => d.type === 'PAN')}
+                                        onUpdate={handleUpdateIdentity}
+                                        updating={updating}
+                                    />
 
-                                    <div className="flex items-end gap-3">
-                                        <div className="flex-1">
-                                            <Input 
-                                                label="Aadhaar Number" 
-                                                value={aadhaar} 
-                                                onChange={(e) => setAadhaar(e.target.value)}
-                                                placeholder="1234 5678 9012"
-                                            />
-                                        </div>
-                                        <Button 
-                                            variant="outline" 
-                                            onClick={() => handleUpdateIdentity('AADHAAR', aadhaar)}
-                                            disabled={updating}
-                                        >
-                                            Save
-                                        </Button>
-                                        <StatusBadge 
-                                            status={profile.identityDocuments?.find(d => d.type === 'AADHAAR')?.isVerified ? 'APPROVED' : 'PENDING'} 
-                                        />
-                                    </div>
+                                    <IdentitySection
+                                        type="AADHAAR"
+                                        label="Aadhaar Card"
+                                        doc={profile.identityDocuments?.find(d => d.type === 'AADHAAR')}
+                                        onUpdate={handleUpdateIdentity}
+                                        updating={updating}
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
@@ -292,6 +271,90 @@ export default function ProfilePage() {
                                 </Link>
                             </CardContent>
                         </Card>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function IdentitySection({
+    type,
+    label,
+    doc,
+    onUpdate,
+    updating
+}: {
+    type: 'PAN' | 'AADHAAR',
+    label: string,
+    doc?: any,
+    onUpdate: (type: 'PAN' | 'AADHAAR', value: string, filePath?: string) => void,
+    updating: boolean
+}) {
+    const [value, setValue] = useState(doc?.documentNumber || '');
+    const [filePath, setFilePath] = useState(doc?.filePath || '');
+
+    useEffect(() => {
+        if (doc) {
+            setValue(doc.documentNumber);
+            setFilePath(doc.filePath || '');
+        }
+    }, [doc]);
+
+    return (
+        <div className="space-y-4 border-b pb-6 last:border-0 last:pb-0">
+            <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">{label}</h3>
+                <StatusBadge
+                    status={doc?.isVerified ? 'APPROVED' : doc ? 'PENDING' : 'DRAFT'}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                    <Input
+                        label={`${label} Number`}
+                        value={value}
+                        onChange={(e) => setValue(type === 'PAN' ? e.target.value.toUpperCase() : e.target.value)}
+                        placeholder={type === 'PAN' ? 'ABCDE1234F' : '1234 5678 9012'}
+                    />
+
+                    <FileUpload
+                        label={`Upload ${label} Copy`}
+                        uploadType="identity"
+                        accept="image/*,application/pdf"
+                        onUploadComplete={(data) => setFilePath(data.path)}
+                        helperText="Upload a clear image or PDF"
+                    />
+
+                    <Button
+                        variant="outline"
+                        onClick={() => onUpdate(type, value, filePath)}
+                        disabled={updating || !value || !filePath}
+                        className="w-full"
+                    >
+                        {updating ? 'Saving...' : doc ? 'Update Document' : `Save ${label}`}
+                    </Button>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center justify-center border border-dashed border-gray-300 min-h-[150px]">
+                    {filePath ? (
+                        <div className="text-center">
+                            <p className="text-xs text-gray-500 mb-2 truncate max-w-[200px]">Path: {filePath}</p>
+                            <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto">
+                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <p className="text-sm font-medium mt-2">Document Attached</p>
+                        </div>
+                    ) : (
+                        <div className="text-center text-gray-400">
+                            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm">No document uploaded</p>
+                        </div>
                     )}
                 </div>
             </div>

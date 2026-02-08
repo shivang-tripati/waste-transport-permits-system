@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { type, documentNumber } = validation.data;
+        const { type, documentNumber, filePath } = validation.data;
 
         const document = await prisma.identityDocument.upsert({
             where: {
@@ -38,12 +38,14 @@ export async function POST(request: NextRequest) {
             } as any,
             update: {
                 documentNumber,
+                filePath,
                 isVerified: false, // Reset verification on change
             },
             create: {
                 userId: authUser.userId,
                 type: type as any,
                 documentNumber,
+                filePath,
             },
         });
 

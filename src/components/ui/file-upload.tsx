@@ -11,15 +11,17 @@ interface FileUploadProps {
   className?: string;
   helperText?: string;
   existingFilesCount?: number;
+  uploadType?: string;
 }
 
-export function FileUpload({ 
-  onUploadComplete, 
-  label = 'Upload File', 
+export function FileUpload({
+  onUploadComplete,
+  label = 'Upload File',
   accept = 'image/*,application/pdf',
   className,
   helperText,
   existingFilesCount = 0,
+  uploadType = 'waste_evidence',
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,46 +29,46 @@ export function FileUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const files = Array.from(e.target.files || []);
-  if (!files.length) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-  const remainingSlots = 3 - existingFilesCount;
-  const filesToUpload = files.slice(0, remainingSlots);
+    const remainingSlots = 3 - existingFilesCount;
+    const filesToUpload = files.slice(0, remainingSlots);
 
-  setError(null);
-  setIsUploading(true);
+    setError(null);
+    setIsUploading(true);
 
-  try {
-    for (const file of filesToUpload) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => setPreview(e.target?.result as string);
-        reader.readAsDataURL(file);
-      } else {
-        setPreview(null);
+    try {
+      for (const file of filesToUpload) {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => setPreview(e.target?.result as string);
+          reader.readAsDataURL(file);
+        } else {
+          setPreview(null);
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', uploadType);
+
+        const res = await uploadFile('/upload', formData);
+
+        if (!res.success) {
+          throw new Error(res.error?.message || 'Upload failed');
+        }
+
+        onUploadComplete(res.data);
       }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'waste_evidence');
-
-      const res = await uploadFile('/upload', formData);
-
-      if (!res.success) {
-        throw new Error(res.error?.message || 'Upload failed');
-      }
-
-      onUploadComplete(res.data);
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred during upload');
+      setPreview(null);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  } catch (err) {
-    console.error(err);
-    setError('An error occurred during upload');
-    setPreview(null);
-  } finally {
-    setIsUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
-};
+  };
 
 
   return (
@@ -74,7 +76,7 @@ export function FileUpload({
       <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}
       </label>
-      
+
       <div className="flex items-center gap-4">
         <input
           type="file"
@@ -83,13 +85,13 @@ export function FileUpload({
           accept={accept}
           onChange={handleFileChange}
         />
-        
+
         <div className="flex-1">
           {preview ? (
             <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-              <img 
-                src={preview} 
-                alt="Preview" 
+              <img
+                src={preview}
+                alt="Preview"
                 className="w-full h-full object-cover"
               />
               <button
@@ -107,7 +109,7 @@ export function FileUpload({
               </button>
             </div>
           ) : (
-            <div 
+            <div
               onClick={() => fileInputRef.current?.click()}
               className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-pointer"
             >
@@ -129,7 +131,7 @@ export function FileUpload({
           )}
         </div>
       </div>
-      
+
       {error && (
         <p className="mt-1 text-sm text-red-600">{error}</p>
       )}

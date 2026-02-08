@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, SkeletonCard } from '@/components/ui';
+import { get } from '@/lib/api/client';
 
 interface Permit {
   id: string;
@@ -28,22 +29,21 @@ function UserPermitsContent() {
   useEffect(() => {
     setLoading(true);
     
-    const params = new URLSearchParams();
-    params.set('limit', '50');
-    if (currentStatus) params.set('status', currentStatus);
-    
-    const token = localStorage.getItem('accessToken');
-    
-    fetch(`/api/v1/permits?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.success) {
-          setPermits(result.data || []);
+    const fetchPermits = async () => {
+      try {
+        const res = await get<Permit[]>('/permits', {
+          limit: 50,
+          status: currentStatus || undefined
+        });
+        if (res.success) {
+          setPermits(res.data || []);
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPermits();
   }, [currentStatus]);
   
   const statusFilters = [
@@ -134,15 +134,15 @@ function UserPermitsContent() {
                   <div className="space-y-2 text-sm">
                     <div>
                       <p className="text-gray-500">Project</p>
-                      <p className="font-medium">{permit.project.name}</p>
+                      <p className="font-medium">{permit?.project?.name}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Plant</p>
-                      <p className="font-medium">{permit.plant.name}</p>
+                      <p className="font-medium">{permit?.plant?.name}</p>
                     </div>
                     <div>
                       <p className="text-gray-500">Waste Type</p>
-                      <StatusBadge status={permit.wasteType} />
+                      <StatusBadge status={permit?.wasteType} />
                     </div>
                   </div>
                   

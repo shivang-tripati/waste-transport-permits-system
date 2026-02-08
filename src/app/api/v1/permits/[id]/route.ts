@@ -62,13 +62,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             return createErrorResponse(CommonErrors.notFound('Permit'));
         }
 
+        const companyId = permit.project?.company?.id;
+
         // Check access permission
         if (!isAdmin(user.role)) {
             const hasAccess = canAccessResource(
                 user,
                 {
                     userId: permit.userId,
-                    companyId: permit.project.company?.id,
+                    companyId
                 },
                 true
             );
@@ -122,7 +124,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         if (!isAdmin(user.role)) {
             const hasAccess = canAccessResource(
                 user,
-                { userId: existingPermit.userId, companyId: existingPermit.project.companyId },
+                { userId: existingPermit.userId, companyId: existingPermit.project?.companyId },
                 true
             );
 

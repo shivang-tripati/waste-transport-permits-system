@@ -4,8 +4,8 @@ import { UserRole } from '@prisma/client';
 // Environment variables with defaults for development
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-minimum-32-characters-long!!!';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-minimum-32-characters!!';
-const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
-const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
+const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || 15;
+const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || 7;
 
 /**
  * Payload structure for access tokens
@@ -16,6 +16,7 @@ export interface AccessTokenPayload {
     role: UserRole;
     companyId?: string | null;
 }
+
 
 /**
  * Payload structure for refresh tokens
@@ -37,7 +38,7 @@ export interface DecodedToken<T> extends JwtPayload {
  */
 export function generateAccessToken(payload: AccessTokenPayload): string {
     const options: SignOptions = {
-        expiresIn: JWT_ACCESS_EXPIRY as string,
+        expiresIn: JWT_ACCESS_EXPIRY as any,
         algorithm: 'HS256',
     };
 
@@ -49,7 +50,7 @@ export function generateAccessToken(payload: AccessTokenPayload): string {
  */
 export function generateRefreshToken(payload: RefreshTokenPayload): string {
     const options: SignOptions = {
-        expiresIn: JWT_REFRESH_EXPIRY as string,
+        expiresIn: JWT_REFRESH_EXPIRY as any,
         algorithm: 'HS256',
     };
 
@@ -86,7 +87,7 @@ export function verifyRefreshToken(token: string): DecodedToken<RefreshTokenPayl
 export function parseExpiryToMs(expiry: string): number {
     const match = expiry.match(/^(\d+)(s|m|h|d)$/);
     if (!match) {
-        return 15 * 60 * 1000; // Default 15 minutes
+        return 3 * 24 * 60 * 60 * 1000; // Default 3 days
     }
 
     const value = parseInt(match[1], 10);
@@ -102,7 +103,7 @@ export function parseExpiryToMs(expiry: string): number {
         case 'd':
             return value * 24 * 60 * 60 * 1000;
         default:
-            return 15 * 60 * 1000;
+            return 3 * 24 * 60 * 60 * 1000;
     }
 }
 
@@ -110,7 +111,7 @@ export function parseExpiryToMs(expiry: string): number {
  * Get refresh token expiry date
  */
 export function getRefreshTokenExpiry(): Date {
-    const expiryMs = parseExpiryToMs(JWT_REFRESH_EXPIRY as string);
+    const expiryMs = parseExpiryToMs(String(JWT_REFRESH_EXPIRY));
     return new Date(Date.now() + expiryMs);
 }
 

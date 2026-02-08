@@ -1,3 +1,5 @@
+import { post } from "./api/client";
+
 /**
  * Generate permit number with format: PT-YYYYMMDD-XXXXX
  */
@@ -94,40 +96,48 @@ export function parseFilters(searchParams: URLSearchParams, allowedFields: strin
 }
 
 
+export const normalizeDateTime = (val: unknown): Date | null => {
+    if (!val || val === "") return null;
+
+    if (typeof val === "string") {
+        // "2026-01-28T06:33" → "2026-01-28T06:33:00"
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+            return new Date(`${val}:00`);
+        }
+
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) return d;
+    }
+
+    return null;
+};
+
+
+
 export async function uploadEvidenceAsync(
     permitId: string,
-    files: any[],
-    token: string | null
+    files: any[]
 ) {
     try {
         await Promise.all(
-            files.map(async (fileData) => {
-                const res = await fetch(
-                    `/api/v1/permits/${permitId}/evidence`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                            permitId,
-                            fileName: fileData.fileName,
-                            filePath: fileData.path,
-                            fileSize: fileData.size,
-                            mimeType: fileData.mimeType,
-                            description: 'Initial evidence',
-                        }),
-                    }
-                );
-
-                if (!res.ok) {
-                    throw new Error('Evidence upload failed');
-                }
-            })
+            files.map((fileData) =>
+                post(`/permits/${permitId}/evidence`, {
+                    permitId,
+                    fileName: fileData.fileName,
+                    filePath: fileData.path,
+                    fileSize: fileData.size,
+                    mimeType: fileData.mimeType,
+                    description: "Initial evidence",
+                })
+            )
         );
     } catch (e) {
-        console.error('Evidence upload failed:', e);
-        throw new Error('Evidence upload failed');
+        console.error("Evidence upload failed:", e);
+        throw new Error("Evidence upload failed");
     }
 }
+
+
+export const getEvidenceUrl = (path: string) => {
+    return `${process.env.NEXT_PUBLIC_FILE_BASE_URL}/${path}`;
+};

@@ -32,7 +32,7 @@ export default function GovNavbar() {
             <Link href="/" className="hover:underline">
               Home
             </Link>
-            <Link href="/verify" className="hover:underline">
+            <Link href="/compliance/verify" className="hover:underline">
               Verify Permit
             </Link>
             <Link href="/about" className="hover:underline">

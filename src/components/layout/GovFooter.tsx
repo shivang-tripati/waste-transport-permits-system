@@ -72,7 +72,7 @@ export default function GovFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:underline">
+                <Link href="/terms-of-service" className="hover:underline">
                   Terms of Use
                 </Link>
               </li>

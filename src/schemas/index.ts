@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { UserRole, WasteType, PermitStatus, WeighmentStatus, PaymentStatus } from '@prisma/client';
+import { normalizeDateTime } from '@/lib/utils';
 
 // ============================================================
 // AUTH SCHEMAS
@@ -129,26 +130,60 @@ export const updatePlantSchema = createPlantSchema.partial().omit({ code: true }
 // PERMIT SCHEMAS
 // ============================================================
 
+const dateTimeField = (label: string) =>
+    z
+        .string()
+        .optional()
+        .refine(
+            (val) => {
+                if (!val) return true;
+
+                // Accept HTML datetime-local
+                if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) return true;
+
+                // Accept ISO
+                const d = new Date(val);
+                return !isNaN(d.getTime());
+            },
+            { message: `Please select a valid ${label}` }
+        );
+
+
+
 export const createPermitSchema = z.object({
     wasteType: z.enum(WasteType),
+
     estimatedWeight: z.number().positive().optional(),
     estimatedVolume: z.number().positive().optional(),
     wasteDescription: z.string().optional(),
-    projectId: z.uuid('Invalid project ID').optional(),
-    companyId: z.uuid('Invalid company ID').optional(),
-    plantId: z.uuid('Invalid plant ID'),
-    pickupAddress: z.string().min(5, 'Pickup address is required'),
-    pickupCity: z.string().min(2, 'Pickup city is required'),
-    pickupState: z.string().min(2, 'Pickup state is required'),
-    pickupPincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+
+    projectId: z.string().uuid().optional(),
+    companyId: z.string().uuid().optional(),
+    plantId: z.string().uuid(),
+
+    pickupAddress: z.string().min(5, "Pickup address is required"),
+    pickupCity: z.string().min(2, "Pickup city is required"),
+    pickupState: z.string().min(2, "Pickup state is required"),
+    pickupPincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+    pickupLatitude: z.number().min(-90).max(90).optional(),
+    pickupLongitude: z.number().min(-180).max(180).optional(),
+
     driverName: z.string().optional(),
     driverPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
     vehicleNumber: z.string().optional(),
     vehicleType: z.string().optional(),
-    validFrom: z.iso.datetime().optional(),
-    validUntil: z.iso.datetime().optional(),
+    licenseNumber: z
+        .string()
+        .toUpperCase()
+        .regex(
+            /^[A-Z]{2}[- ]?\d{2}[- ]?\d{4}[- ]?\d{4,7}$/,
+            { message: "Invalid Indian driving license number format" }
+        )
+        .optional(),
 
-    userRole: z.nativeEnum(UserRole),
+
+    validFrom: dateTimeField("Start date & time"),
+    validUntil: dateTimeField("End date & time"),
 
 });
 
@@ -159,11 +194,12 @@ export const submitPermitSchema = z.object({
     driverPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Valid driver phone is required'),
     vehicleNumber: z.string().min(4, 'Vehicle number is required'),
     vehicleType: z.string().optional(),
+    licenseNumber: z.string().regex(/^[A-Z]{2}[- ]?\d{2}[- ]?[A-Z]{1,3}[- ]?\d{4,7}$/, { message: "Invalid Indian driving license number format" }).optional(),
 });
 
 export const approvePermitSchema = z.object({
-    validFrom: z.iso.datetime().optional(),
-    validUntil: z.iso.datetime(),
+    validFrom: dateTimeField("Valid from").refine(val => val !== null, "Valid from is required"),
+    validUntil: dateTimeField("Valid until").refine(val => val !== null, "Valid until is required"),
 });
 
 export const rejectPermitSchema = z.object({
@@ -225,6 +261,7 @@ export const createWasteEvidenceSchema = z.object({
 export const createIdentityDocumentSchema = z.object({
     type: z.enum(['AADHAAR', 'PAN']),
     documentNumber: z.string().min(8, 'Document number is required'),
+    filePath: z.string().min(1, 'File path is required').optional(),
 });
 
 // ============================================================
