@@ -15,6 +15,7 @@ import {
 } from '@/components/ui';
 import { get, patch, post } from '@/lib/api/client';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface UserProfile {
     id: string;
@@ -340,12 +341,21 @@ function IdentitySection({
                 <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center justify-center border border-dashed border-gray-300 min-h-[150px]">
                     {filePath ? (
                         <div className="text-center">
-                            <p className="text-xs text-gray-500 mb-2 truncate max-w-[200px]">Path: {filePath}</p>
+                            {/* <p className="text-xs text-gray-500 mb-2 truncate max-w-[200px]">Path: {filePath}</p>
                             <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center mx-auto">
                                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                            </div>
+                            </div> */}
+
+                            <Image
+                                src={`/uploads/${filePath}`}
+                                alt={`${label} Copy`}
+                                width={200}
+                                height={200}
+                                className="w-full h-full object-cover"
+                            />
+
                             <p className="text-sm font-medium mt-2">Document Attached</p>
                         </div>
                     ) : (
