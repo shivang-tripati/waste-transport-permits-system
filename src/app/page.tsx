@@ -17,19 +17,19 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       {/* Navigation */}
 
-    <GovNavbar />
-         <SectionHeader />
+      <GovNavbar />
+      <SectionHeader />
       <SectionProblem />
       <SectionCdwIntro />
       <SectionWasteClassification />
       <SectionWorkflow />
-      <SectionPlant />  
+      <SectionPlant />
       <SectionPermit />
-<SectionVerification />
-<SectionCompliance />
-<SectionAccess />
+      <SectionVerification />
+      <SectionCompliance />
+      {/* <SectionAccess /> */}
 
-{/* Stats Section */}
+      {/* Stats Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
@@ -53,11 +53,11 @@ export default function HomePage() {
         </div>
       </section>
 
-<GovFooter />
+      <GovFooter />
 
       {/* <SectionFooter /> */}
 
-      
+
       {/* Hero Section */}
       {/* <section className="relative pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
@@ -82,9 +82,9 @@ export default function HomePage() {
             </Link>
           </div>
         </div> */}
-        
-        {/* Decorative elements */}
-        {/* <div className="absolute top-1/2 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+
+      {/* Decorative elements */}
+      {/* <div className="absolute top-1/2 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute top-1/3 right-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       </section> */}
 
@@ -132,7 +132,7 @@ export default function HomePage() {
         </div>
       </section> */}
 
-      
+
 
       {/* CTA Section */}
       {/* <section className="py-20 bg-blue-600">

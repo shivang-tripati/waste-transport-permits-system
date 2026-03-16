@@ -6,42 +6,34 @@ import { useAuth } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton } from '@/components/ui';
 import { get } from '@/lib/api/client';
 
-interface UserStats {
-  totalPermits: number;
-  activePermits: number;
-  pendingApproval: number;
-  completedThisMonth: number;
-}
-
-interface RecentPermit {
-  id: string;
-  permitNumber: string;
-  status: string;
-  createdAt: string;
-  plant: { name: string };
+interface UserDashboardData {
+  stats: {
+    totalPermits: number;
+    activePermits: number;
+    pendingApproval: number;
+    completedThisMonth: number;
+  };
+  recentActivity: Array<{
+    id: string;
+    permitNumber: string;
+    status: string;
+    projectName: string;
+    plantName: string;
+    updatedAt: string;
+  }>;
 }
 
 export default function UserDashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [recentPermits, setRecentPermits] = useState<RecentPermit[]>([]);
+  const [data, setData] = useState<UserDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load stats and recent permits
     const fetchData = async () => {
       try {
-        const result = await get<RecentPermit[]>('/permits', { limit: 5 });
+        const result = await get<UserDashboardData>('/dashboard/user-stats');
         if (result.success) {
-          setRecentPermits(result.data || []);
-          // Calculate stats from response
-          const permits = result.data || [];
-          setStats({
-            totalPermits: result.pagination?.total || permits.length,
-            activePermits: permits.filter((p: RecentPermit) => ['APPROVED', 'IN_TRANSIT'].includes(p.status)).length,
-            pendingApproval: permits.filter((p: RecentPermit) => p.status === 'SUBMITTED').length,
-            completedThisMonth: permits.filter((p: RecentPermit) => p.status === 'COMPLETED').length,
-          });
+          setData(result.data || null);
         }
       } finally {
         setLoading(false);
@@ -70,10 +62,10 @@ export default function UserDashboardPage() {
   }
 
   const statCards = [
-    { label: 'Total Permits', value: stats?.totalPermits || 0, color: 'text-blue-600' },
-    { label: 'Active', value: stats?.activePermits || 0, color: 'text-green-600' },
-    { label: 'Pending Approval', value: stats?.pendingApproval || 0, color: 'text-yellow-600' },
-    { label: 'Completed', value: stats?.completedThisMonth || 0, color: 'text-purple-600' },
+    { label: 'Total Permits', value: data?.stats.totalPermits || 0, color: 'text-blue-600' },
+    { label: 'Active', value: data?.stats.activePermits || 0, color: 'text-green-600' },
+    { label: 'Pending Approval', value: data?.stats.pendingApproval || 0, color: 'text-yellow-600' },
+    { label: 'Completed', value: data?.stats.completedThisMonth || 0, color: 'text-purple-600' },
   ];
 
   return (
@@ -156,7 +148,7 @@ export default function UserDashboardPage() {
             </Link>
           </CardHeader>
           <CardContent>
-            {recentPermits.length === 0 ? (
+            {!data || data.recentActivity.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No permits yet</p>
                 <Link href="/dashboard/permits/new">
@@ -165,7 +157,7 @@ export default function UserDashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {recentPermits.map((permit) => (
+                {data.recentActivity.map((permit) => (
                   <Link
                     key={permit.id}
                     href={`/dashboard/permits/${permit.id}`}
@@ -173,7 +165,7 @@ export default function UserDashboardPage() {
                   >
                     <div>
                       <p className="font-mono text-sm">{permit.permitNumber}</p>
-                      <p className="text-xs text-gray-500">{permit.plant.name}</p>
+                      <p className="text-xs text-gray-500">{permit.plantName}</p>
                     </div>
                     <StatusBadge status={permit.status} />
                   </Link>

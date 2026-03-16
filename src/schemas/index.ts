@@ -234,8 +234,13 @@ export const approveWeighmentSchema = z.object({
 });
 
 export const markWeighmentPaidSchema = z.object({
+    paymentAmount: z.number().nonnegative('Payment amount must be non-negative'),
     paymentReference: z.string().min(1, 'Payment reference is required'),
     paymentMethod: z.string().optional(),
+});
+
+export const rejectWeighmentSchema = z.object({
+    reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),
 });
 
 // ============================================================
@@ -293,5 +298,6 @@ export type CreateWeighmentInput = z.infer<typeof createWeighmentSchema>;
 export type UpdateWeighmentInput = z.infer<typeof updateWeighmentSchema>;
 export type ApproveWeighmentInput = z.infer<typeof approveWeighmentSchema>;
 export type MarkWeighmentPaidInput = z.infer<typeof markWeighmentPaidSchema>;
+export type RejectWeighmentInput = z.infer<typeof rejectWeighmentSchema>;
 export type CreateWasteEvidenceInput = z.infer<typeof createWasteEvidenceSchema>;
 export type CreateIdentityDocumentInput = z.infer<typeof createIdentityDocumentSchema>;

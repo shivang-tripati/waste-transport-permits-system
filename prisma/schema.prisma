@@ -69,6 +69,12 @@ enum NotificationStatus {
   FAILED
 }
 
+enum NotificationPriority {
+  CRITICAL
+  STANDARD
+  TRANSIENT
+}
+
 enum AuditAction {
   CREATED
   UPDATED
@@ -418,7 +424,6 @@ model Weighment {
   weighedAt         DateTime?
   
   @@index([permitId])
-  @@index([plantId])
   @@index([status])
   @@index([createdAt])
 }
@@ -471,6 +476,9 @@ model Notification {
   id                String             @id @default(uuid())
   type              NotificationType
   status            NotificationStatus @default(PENDING)
+
+  priority          NotificationPriority @default(STANDARD)
+  expiresAt         DateTime?
   
   // Recipient
   recipientPhone    String?
@@ -496,8 +504,8 @@ model Notification {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   
-  @@index([userId])
   @@index([permitId])
+  @@index([expiresAt, priority])
   @@index([status])
 }
 
@@ -540,3 +548,33 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model LegacyWeighmentImport {
+  id              String @id @default(uuid())
+
+  slipNo          String
+  vehicleNo       String
+  material        String?
+
+  firstWeight     Float?
+  secondWeight    Float?
+  netWeight       Float?
+
+  firstWeighAt    DateTime?
+  secondWeighAt   DateTime?
+
+  supplier        String?
+  location        String?
+  customer        String?
+
+  rawData         Json
+
+  importStatus    String @default("PENDING")
+  errors          Json?
+
+  createdAt       DateTime @default(now())
+
+  @@index([slipNo])
+  @@index([vehicleNo])
+}
+

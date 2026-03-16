@@ -7,7 +7,8 @@ import {
     CommonErrors,
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
-import { submitPermitSchema } from '@/schemas';
+import { submitPermitSchema, approvePermitSchema } from '@/schemas';
+import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Check ownership
         if (existingPermit.userId !== user.userId && user.role !== 'ADMIN') {
-            if (user.companyId !== existingPermit.project.companyId) {
+            if (user.companyId !== existingPermit?.project?.companyId) {
                 return createErrorResponse(
                     CommonErrors.forbidden('You do not have access to this permit')
                 );
@@ -74,8 +75,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             include: {
                 project: { select: { id: true, name: true } },
                 plant: { select: { id: true, name: true, code: true } },
+                user: { select: { id: true, name: true, phone: true } },
             },
         });
+
+        // Trigger notification (Async)
+        if (permit.user?.phone) {
+            sendTemplateNotification({
+                eventType: 'PERMIT_SUBMITTED',
+                userId: permit.userId,
+                phone: permit.user.phone,
+                permitId: permit.id,
+                data: {
+                    permitNumber: permit.permitNumber,
+                    applicantName: permit.user.name
+                }
+            });
+        }
 
         // Create audit log
         await createAuditLog({

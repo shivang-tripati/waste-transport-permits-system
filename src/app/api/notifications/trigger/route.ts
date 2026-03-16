@@ -1,0 +1,52 @@
+import { NextRequest } from 'next/server';
+import { prisma } from '@/lib/db';
+import { authenticate } from '@/lib/auth';
+import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
+import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
+import { BusinessEvent } from '@/lib/notifications/templateRegistry';
+
+/**
+ * POST /api/notifications/trigger
+ * External entry point for triggering WhatsApp notifications
+ */
+export async function POST(request: NextRequest) {
+    try {
+        // 1. Authenticate (System Admin or trusted app)
+        const authResult = await authenticate(request);
+        if (!authResult.success) {
+            return authResult.response;
+        }
+
+        const body = await request.json();
+        const { eventType, userId, permitId, data } = body;
+
+        // 2. Validate input
+        if (!eventType || !userId) {
+            return createErrorResponse(CommonErrors.badRequest('eventType and userId are required'));
+        }
+
+        // 3. Fetch user phone number
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true }
+        });
+
+        if (!user || !user.phone) {
+            return createErrorResponse(CommonErrors.notFound('User phone number not found'));
+        }
+
+        // 4. Trigger notification (Async/Fire-and-forget)
+        sendTemplateNotification({
+            eventType: eventType as BusinessEvent,
+            userId,
+            phone: user.phone,
+            permitId,
+            data
+        });
+
+        return createSuccessResponse({ message: 'Notification triggered successfully' });
+    } catch (error) {
+        console.error('Trigger notification error:', error);
+        return createErrorResponse(error);
+    }
+}

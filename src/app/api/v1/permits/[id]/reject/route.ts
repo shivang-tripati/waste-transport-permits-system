@@ -8,6 +8,7 @@ import {
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { rejectPermitSchema } from '@/schemas';
+import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -73,10 +74,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             include: {
                 project: { select: { id: true, name: true } },
                 plant: { select: { id: true, name: true, code: true } },
-                user: { select: { id: true, name: true, email: true } },
+                user: { select: { id: true, name: true, phone: true } },
                 rejectedBy: { select: { id: true, name: true } },
             },
         });
+
+        // Trigger notification (Async)
+        if (permit.user?.phone) {
+            sendTemplateNotification({
+                eventType: 'PERMIT_REJECTED',
+                userId: permit.userId,
+                phone: permit.user.phone,
+                permitId: permit.id,
+                data: {
+                    permitNumber: permit.permitNumber,
+                    reason: permit.rejectionReason || 'No reason provided'
+                }
+            });
+        }
 
         // Create audit log
         await createAuditLog({

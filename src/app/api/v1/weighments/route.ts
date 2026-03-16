@@ -10,8 +10,9 @@ import {
     createPaginationMeta,
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
-import { createWeighmentSchema } from '@/schemas';
+import { createWeighmentSchema, updateWeighmentSchema, approveWeighmentSchema, markWeighmentPaidSchema } from '@/schemas';
 import { generateWeighmentNumber } from '@/lib/utils';
+import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
 import { Prisma } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'status', 'weighedAt'];
@@ -26,47 +27,55 @@ export async function GET(request: NextRequest) {
 
         const { user } = authResult;
 
-        // Only admins and plant operators can list all weighments
-        if (!hasPermission(user.role, 'weighment:read')) {
-            return createErrorResponse(
-                CommonErrors.forbidden('You do not have permission to view weighments')
-            );
-        }
-
         const { searchParams } = new URL(request.url);
         const { page, limit, skip } = parsePagination(searchParams);
         const { field: sortField, order: sortOrder } = parseSort(searchParams, SORTABLE_FIELDS);
 
         const where: Prisma.WeighmentWhereInput = {};
 
-        // Filter by status
-        const status = searchParams.get('status');
-        if (status) {
-            where.status = status as Prisma.EnumWeighmentStatusFilter['equals'];
-        }
+        // Role-based filtering
+        if (isAdmin(user.role) || hasPermission(user.role, 'weighment:read')) {
+            // Admin/Plant Operator: Can view all, with optional filters
 
-        // Filter by payment status
-        const paymentStatus = searchParams.get('paymentStatus');
-        if (paymentStatus) {
-            where.paymentStatus = paymentStatus as Prisma.EnumPaymentStatusFilter['equals'];
-        }
+            // Filter by status
+            const status = searchParams.get('status');
+            if (status) {
+                where.status = status as Prisma.EnumWeighmentStatusFilter['equals'];
+            }
 
-        // Filter by plant
-        const plantId = searchParams.get('plantId');
-        if (plantId) {
-            where.plantId = plantId;
-        }
+            // Filter by payment status
+            const paymentStatus = searchParams.get('paymentStatus');
+            if (paymentStatus) {
+                where.paymentStatus = paymentStatus as Prisma.EnumPaymentStatusFilter['equals'];
+            }
 
-        // Filter by permit
-        const permitId = searchParams.get('permitId');
-        if (permitId) {
-            where.permitId = permitId;
-        }
+            // Filter by plant
+            const plantId = searchParams.get('plantId');
+            if (plantId) {
+                where.plantId = plantId;
+            }
 
-        // Search by weighment number
-        const search = searchParams.get('search');
-        if (search) {
-            where.weighmentNumber = { contains: search, mode: 'insensitive' };
+            // Filter by permit
+            const permitId = searchParams.get('permitId');
+            if (permitId) {
+                where.permitId = permitId;
+            }
+
+            // Search by weighment number
+            const search = searchParams.get('search');
+            if (search) {
+                where.weighmentNumber = { contains: search, mode: 'insensitive' };
+            }
+        } else {
+            // Regular User: Can only view their own APPROVED weighments
+            where.permit = { userId: user.userId };
+            where.status = 'APPROVED';
+
+            // Allow search within their own weighments
+            const search = searchParams.get('search');
+            if (search) {
+                where.weighmentNumber = { contains: search, mode: 'insensitive' };
+            }
         }
 
         const [weighments, total] = await Promise.all([
@@ -155,8 +164,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate net weight
-        const firstWeight = data.firstWeight ?? null;
-        const secondWeight = data.secondWeight ?? null;
+        const firstWeight = data.grossWeight ?? null;
+        const secondWeight = data.tareWeight ?? null;
         let netWeight = null;
         if (firstWeight !== null && secondWeight !== null) {
             netWeight = Math.abs(secondWeight - firstWeight);
@@ -173,15 +182,37 @@ export async function POST(request: NextRequest) {
                 secondWeight,
                 secondWeighmentAt: secondWeight !== null ? new Date() : null,
                 netWeight,
-                fileUrl: data.fileUrl ?? null,
+                // fileUrl: data.fileUrl ?? null, // Note: fileUrl is not in createWeighmentSchema currently, adding to schema might be needed or handled here if it's sent
                 notes: data.notes,
                 weighedAt: new Date(),
             },
             include: {
-                permit: { select: { id: true, permitNumber: true } },
+                permit: {
+                    select: {
+                        id: true,
+                        permitNumber: true,
+                        userId: true,
+                        user: { select: { phone: true } }
+                    }
+                },
                 plant: { select: { id: true, name: true, code: true } },
             },
         });
+
+        // Trigger notification (Async) - only if netWeight is calculated
+        if (weighment.netWeight !== null && weighment.permit?.user?.phone) {
+            sendTemplateNotification({
+                eventType: 'WEIGHMENT_RECORDED',
+                userId: weighment.permit.userId,
+                phone: weighment.permit.user.phone,
+                permitId: weighment.permitId,
+                data: {
+                    permitNumber: weighment.permit.permitNumber,
+                    netWeight: `${weighment.netWeight} kg`,
+                    plantName: weighment.plant.name
+                }
+            });
+        }
 
         // Create audit log
         await createAuditLog({

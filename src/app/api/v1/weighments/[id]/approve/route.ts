@@ -8,6 +8,7 @@ import {
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { approveWeighmentSchema } from '@/schemas';
+import { generateWeighmentSlip } from '@/lib/services/pdf-generator';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -34,13 +35,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         const body = await request.json();
 
-        // Validate input
+        // Validate input (now optional - payment may have been captured separately)
         const validation = approveWeighmentSchema.safeParse(body);
-        if (!validation.success) {
-            return createErrorResponse(
-                CommonErrors.validationError(validation.error.flatten().fieldErrors)
-            );
-        }
 
         // Get existing weighment
         const existing = await prisma.weighment.findUnique({
@@ -59,20 +55,37 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { paymentAmount, paymentMethod } = validation.data;
+        // Must be PAID before approval
+        if (existing.paymentStatus !== 'PAID') {
+            return createErrorResponse(
+                CommonErrors.badRequest('Weighment must be marked as PAID before approval')
+            );
+        }
+
+        // Prepare update data
+        const updateData: any = {
+            status: 'APPROVED',
+            approvedByUserId: user.userId,
+            approvedAt: new Date(),
+            updatedByUserId: user.userId,
+        };
+
+        // Add payment info if provided in this request (legacy support)
+        if (validation.success) {
+            const { paymentAmount, paymentMethod } = validation.data;
+            if (paymentAmount !== undefined) {
+                updateData.paymentAmount = paymentAmount;
+            }
+            if (paymentMethod !== undefined) {
+                updateData.paymentMethod = paymentMethod;
+            }
+        }
 
         // Update weighment to APPROVED and update permit to COMPLETED
         const [weighment] = await prisma.$transaction([
             prisma.weighment.update({
                 where: { id },
-                data: {
-                    status: 'APPROVED',
-                    paymentAmount,
-                    paymentMethod,
-                    approvedByUserId: user.userId,
-                    approvedAt: new Date(),
-                    updatedByUserId: user.userId,
-                },
+                data: updateData,
                 include: {
                     permit: { select: { id: true, permitNumber: true } },
                     plant: { select: { id: true, name: true, code: true } },
@@ -89,6 +102,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             }),
         ]);
 
+        // Generate PDF weighment slip
+        let fileUrl: string | null = null;
+        try {
+            fileUrl = await generateWeighmentSlip(id);
+
+            // Update weighment with file URL
+            await prisma.weighment.update({
+                where: { id },
+                data: { fileUrl },
+            });
+        } catch (pdfError) {
+            console.error('PDF generation error:', pdfError);
+            // Continue even if PDF generation fails - it can be generated later
+        }
+
         // Create audit log for weighment
         await createAuditLog({
             entityType: 'WEIGHMENT',
@@ -96,7 +124,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             action: 'APPROVED',
             performedByUserId: user.userId,
             previousState: { status: existing.status },
-            newState: { status: weighment.status, paymentAmount },
+            newState: {
+                status: weighment.status,
+                paymentAmount: updateData.paymentAmount,
+                fileUrl
+            },
             ipAddress: getClientIP(request.headers),
             userAgent: getUserAgent(request.headers),
         });
@@ -113,7 +145,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             userAgent: getUserAgent(request.headers),
         });
 
-        return createSuccessResponse(weighment);
+        // Return weighment with updated fileUrl
+        return createSuccessResponse({
+            ...weighment,
+            fileUrl,
+        });
     } catch (error) {
         console.error('Approve weighment error:', error);
         return createErrorResponse(error);

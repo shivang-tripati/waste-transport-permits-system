@@ -8,6 +8,7 @@ import {
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateWeighmentSchema, approveWeighmentSchema, markWeighmentPaidSchema } from '@/schemas';
+import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -115,8 +116,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         const data = validation.data;
 
         // Calculate net weight and handle timestamps
-        const firstWeight = data.firstWeight ?? existing.firstWeight;
-        const secondWeight = data.secondWeight ?? existing.secondWeight;
+        const firstWeight = data.grossWeight ?? existing.firstWeight;
+        const secondWeight = data.tareWeight ?? existing.secondWeight;
         let netWeight = null;
         if (firstWeight !== null && secondWeight !== null) {
             netWeight = Math.abs(secondWeight - firstWeight);
@@ -124,15 +125,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         const updateData: any = {
             ...data,
+            firstWeight,
+            secondWeight,
             netWeight,
             updatedByUserId: user.userId,
         };
 
         // Update timestamps if weights are new
-        if (data.firstWeight !== undefined && data.firstWeight !== null && !existing.firstWeighmentAt) {
+        if (data.grossWeight !== undefined && data.grossWeight !== null && !existing.firstWeighmentAt) {
             updateData.firstWeighmentAt = new Date();
         }
-        if (data.secondWeight !== undefined && data.secondWeight !== null && !existing.secondWeighmentAt) {
+        if (data.tareWeight !== undefined && data.tareWeight !== null && !existing.secondWeighmentAt) {
             updateData.secondWeighmentAt = new Date();
         }
 
@@ -141,10 +144,50 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             where: { id },
             data: updateData,
             include: {
-                permit: { select: { id: true, permitNumber: true } },
+                permit: {
+                    select: {
+                        id: true,
+                        permitNumber: true,
+                        userId: true,
+                        user: { select: { phone: true } }
+                    }
+                },
                 plant: { select: { id: true, name: true, code: true } },
             },
         });
+
+        // Trigger notification (Async) - for netWeight or Document upload
+        if (weighment.permit?.user?.phone) {
+            // Document upload (we handle fileUrl if it's in the data, even if not in schema yet)
+            const fileUrl = (data as any).fileUrl;
+            if (fileUrl && fileUrl !== existing.fileUrl) {
+                sendTemplateNotification({
+                    eventType: 'WEIGHMENT_DOCUMENT',
+                    userId: weighment.permit.userId,
+                    phone: weighment.permit.user.phone,
+                    permitId: weighment.permitId,
+                    data: {
+                        weighmentNumber: weighment.weighmentNumber,
+                        docUrl: `${process.env.NEXT_PUBLIC_APP_URL}/uploads/${fileUrl}`
+                    }
+                });
+            }
+
+            // Net weight completed
+            if (weighment.netWeight !== null && existing.netWeight === null) {
+                sendTemplateNotification({
+                    eventType: 'WEIGHMENT_RECORDED',
+                    userId: weighment.permit.userId,
+                    phone: weighment.permit.user.phone,
+                    permitId: weighment.permitId,
+                    data: {
+                        permitNumber: weighment.permit.permitNumber,
+                        netWeight: `${weighment.netWeight} kg`,
+                        plantName: weighment.plant.name
+                    }
+                });
+            }
+        }
 
         // Create audit log
         await createAuditLog({
