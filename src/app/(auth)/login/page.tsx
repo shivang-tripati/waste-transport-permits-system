@@ -11,7 +11,7 @@ import { loginSchema, LoginInput } from '@/schemas';
 export default function LoginPage() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -19,7 +19,7 @@ export default function LoginPage() {
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
-  
+
   const onSubmit = async (data: LoginInput) => {
     setError(null);
     try {
@@ -28,7 +28,7 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Login failed');
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-primary-light flex items-center justify-center py-8 px-4">
       <Card className="w-full max-w-md">
@@ -46,7 +46,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            
+
             <Input
               label="Email"
               type="email"
@@ -54,7 +54,7 @@ export default function LoginPage() {
               error={errors.email?.message}
               {...register('email')}
             />
-            
+
             <Input
               label="Password"
               type="password"
@@ -62,18 +62,18 @@ export default function LoginPage() {
               error={errors.password?.message}
               {...register('password')}
             />
-            
-            <div className="flex items-center justify-between text-sm">
+
+            {/* <div className="flex items-center justify-between text-sm">
               <Link href="/forgot-password" className="text-primary hover:underline">
                 Forgot password?
               </Link>
-            </div>
-            
+            </div> */}
+
             <Button type="submit" className="w-full" isLoading={isSubmitting}>
               Sign In
             </Button>
           </form>
-          
+
           <p className="text-center text-sm text-gray-500 mt-6">
             Don't have an account?{' '}
             <Link href="/register" className="text-primary hover:underline font-medium">
