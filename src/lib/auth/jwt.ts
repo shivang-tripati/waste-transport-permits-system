@@ -4,8 +4,8 @@ import { UserRole } from '@prisma/client';
 // Environment variables with defaults for development
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-minimum-32-characters-long!!!';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-key-minimum-32-characters!!';
-const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || 15;
-const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || 7;
+const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
+const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
 
 /**
  * Payload structure for access tokens

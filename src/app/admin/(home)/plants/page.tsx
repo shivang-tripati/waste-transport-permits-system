@@ -11,7 +11,7 @@ export default function PlantsPage() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['plants', page],
-    queryFn: () => get<any>(`/plants?page=${page}&limit=10`),
+    queryFn: () => get<any>(`/plants?isActive=true&page=${page}&limit=10`),
   });
 
   if (isLoading) {
@@ -93,30 +93,30 @@ export default function PlantsPage() {
               </tbody>
             </table>
           </div>
-          
+
           {meta && meta.totalPages > 1 && (
             <div className="flex justify-between items-center p-4 border-t">
-               <div className="text-sm text-gray-500">
-                 Page {meta.page} of {meta.totalPages}
-               </div>
-               <div className="flex gap-2">
-                 <Button 
-                   variant="secondary" 
-                   size="sm" 
-                   disabled={meta.page === 1}
-                   onClick={() => setPage(p => Math.max(1, p - 1))}
-                 >
-                   Previous
-                 </Button>
-                 <Button 
-                   variant="secondary" 
-                   size="sm" 
-                   disabled={meta.page === meta.totalPages}
-                   onClick={() => setPage(p => p + 1)}
-                 >
-                   Next
-                 </Button>
-               </div>
+              <div className="text-sm text-gray-500">
+                Page {meta.page} of {meta.totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={meta.page === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={meta.page === meta.totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

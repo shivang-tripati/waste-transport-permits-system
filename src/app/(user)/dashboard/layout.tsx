@@ -116,7 +116,7 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main>
-        <div className="max-w-7xl mx-auto p-4 pt-20">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Onboarding Banner - Company */}
           {user && user.role === 'COMPANY_USER' && !user.companyId && pathname !== '/dashboard/profile' && !pathname.includes('onboarding') && (
             <div className="mb-6 bg-red-50 border border-red-200 p-4 rounded-lg flex items-center justify-between">
@@ -128,7 +128,7 @@ export default function DashboardLayout({
                 </div>
                 <div>
                   <p className="font-semibold text-red-900">Onboarding Incomplete</p>
-                  <p className="text-sm text-red-700">You must register your company and create a project before you can create transport permits.</p>
+                  <p className="text-sm text-red-700">You must register your company and create a project before you can apply for permits to transport waste.</p>
                 </div>
               </div>
               <Link href="/onboarding/company">

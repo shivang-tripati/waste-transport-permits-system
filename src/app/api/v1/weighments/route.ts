@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
+        console.log("BODY:", body)
 
         // Validate input
         const validation = createWeighmentSchema.safeParse(body);
@@ -164,8 +165,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Calculate net weight
-        const firstWeight = data.grossWeight ?? null;
-        const secondWeight = data.tareWeight ?? null;
+        const firstWeight = data.firstWeight ?? null;
+        const secondWeight = data.secondWeight ?? null;
+        const firstWeighmentAt = data.firstWeighmentAt ?? null;
+        const secondWeighmentAt = data.secondWeighmentAt ?? null;
         let netWeight = null;
         if (firstWeight !== null && secondWeight !== null) {
             netWeight = Math.abs(secondWeight - firstWeight);
@@ -178,13 +181,13 @@ export async function POST(request: NextRequest) {
                 permitId: data.permitId,
                 plantId: data.plantId,
                 firstWeight,
-                firstWeighmentAt: firstWeight !== null ? new Date() : null,
+                firstWeighmentAt,
                 secondWeight,
-                secondWeighmentAt: secondWeight !== null ? new Date() : null,
+                secondWeighmentAt,
                 netWeight,
                 // fileUrl: data.fileUrl ?? null, // Note: fileUrl is not in createWeighmentSchema currently, adding to schema might be needed or handled here if it's sent
                 notes: data.notes,
-                weighedAt: new Date(),
+                weighedAt: new Date().toISOString(),
             },
             include: {
                 permit: {

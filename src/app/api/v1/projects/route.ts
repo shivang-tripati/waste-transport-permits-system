@@ -76,6 +76,8 @@ export async function GET(request: NextRequest) {
             prisma.project.count({ where }),
         ]);
 
+        console.log("projects", projects);
+
         return createSuccessResponse(projects, createPaginationMeta(page, limit, total));
     } catch (error) {
         console.error('List projects error:', error);

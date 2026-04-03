@@ -79,7 +79,7 @@ export default function IndividualOnboardingPage() {
                 <div className="flex justify-center">
                     <Button
                         onClick={handleComplete}
-                        disabled={!hasAadhaar || !hasPan}
+                        disabled={hasAadhaar && hasPan}
                         className="px-8"
                     >
                         {hasAadhaar && hasPan ? 'Complete Onboarding' : 'Upload Both Documents to Continue'}

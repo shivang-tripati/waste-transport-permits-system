@@ -58,6 +58,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'permit:create',
         'permit:read:own',
         'permit:update:own',
+        'weighment:read',
     ],
     COMPANY_USER: [
         'permit:create',
@@ -65,6 +66,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'permit:update:own',
         'project:create',
         'project:read:own',
+        'weighment:read',
     ],
     ADMIN: [
         'permit:create',

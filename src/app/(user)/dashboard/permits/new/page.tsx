@@ -19,6 +19,9 @@ interface Project {
   city: string;
   state: string;
   pincode: string;
+  latitude: number;
+  longitude: number;
+
 }
 
 interface Plant {
@@ -83,8 +86,9 @@ export default function NewPermitPage() {
         if (isCompanyUser) {
           const projectsRes = await get<Project[]>(
             "/projects",
-            { limit: 100, isActive: true }
+            { limit: 10, isActive: true }
           );
+          console.log("projectsRes", projectsRes);
           if (projectsRes.success) setProjects(projectsRes.data || []);
         }
       } catch (err) {
@@ -108,6 +112,8 @@ export default function NewPermitPage() {
         setValue("pickupCity", project.city);
         setValue("pickupState", project.state);
         setValue("pickupPincode", project.pincode);
+        setValue("pickupLatitude", project.latitude);
+        setValue("pickupLongitude", project.longitude);
       }
     }
   }, [selectedProjectId, projects, isCompanyUser, setValue]);
@@ -440,7 +446,7 @@ export default function NewPermitPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <Input label="Driver Name" {...register("driverName")} />
                 <Input label="Driver Phone" {...register("driverPhone")} />
-                <Input label="License Number" {...register("licenseNumber")} placeholder="HR1420230000001" />
+                <Input label="Driver's License" {...register("licenseNumber")} placeholder="HR1420230000001" />
                 <Input label="Vehicle Number" {...register("vehicleNumber")} placeholder="HR51AB1234" />
                 <Input
                   label="Vehicle Type"

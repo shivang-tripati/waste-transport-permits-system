@@ -163,7 +163,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="ml-3">
                             <p className="text-sm text-amber-700 font-medium">
-                                Onboarding Incomplete: You need to register your company to create permits.
+                                Onboarding Incomplete: You need to register your company to apply for permits.
                             </p>
                             <Link href="/onboarding/company" className="mt-2 text-sm text-amber-700 underline font-bold block">
                                 Complete Onboarding Now →
