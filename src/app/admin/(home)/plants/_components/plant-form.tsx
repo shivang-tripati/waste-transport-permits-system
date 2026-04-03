@@ -129,7 +129,7 @@ export function PlantForm({ initialData, isEdit = false }: PlantFormProps) {
             <Input
               label="Daily Capacity (Tons)"
               type="number"
-              {...register('capacity', { valueAsNumber: true })}
+              {...register('capacity', { setValueAs: (value) => value == "" ? undefined : Number(value) })}
               error={errors.capacity?.message}
             />
           </div>

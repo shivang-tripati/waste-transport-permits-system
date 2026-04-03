@@ -188,15 +188,9 @@ export default function ProfilePage() {
                                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
                         </div>
-                        <div className="flex-1">
-                            <h3 className="text-amber-800 font-semibold text-lg flex items-center gap-2">
-                                <svg className="h-5 w-5 text-amber-600 sm:hidden" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                                Action Required: Complete Onboarding
-                            </h3>
-                            <p className="text-amber-700 mt-1 text-sm">
-                                You need to register your company details before you can start creating transport permits.
+                        <div className="ml-3">
+                            <p className="text-sm text-amber-700 font-medium">
+                                Onboarding Incomplete: You need to register your company to create permits.
                             </p>
                         </div>
                         <div className="flex-shrink-0 mt-2 sm:mt-0">
@@ -252,7 +246,7 @@ export default function ProfilePage() {
                                     />
                                     <p className="text-xs text-gray-500 mt-1">Email address cannot be changed.</p>
                                 </div>
-                                
+
                                 <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <div className="flex flex-col">
                                         {success && <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-md">{success}</span>}
@@ -289,7 +283,7 @@ export default function ProfilePage() {
                                         onUpdate={handleUpdateIdentity}
                                         updating={updating}
                                     />
-                                    
+
                                     <div className="h-px bg-gray-100 w-full rounded-full"></div>
 
                                     <IdentitySection
@@ -352,14 +346,14 @@ export default function ProfilePage() {
                                     <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">Company Name</p>
                                     <p className="font-bold text-gray-900 text-lg">{profile.company.name}</p>
                                 </div>
-                                
+
                                 {profile.company.gstNumber && (
                                     <div className="bg-white rounded-lg border border-indigo-50 p-3">
                                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">GST Number</p>
                                         <p className="text-sm font-medium text-gray-800 font-mono bg-gray-50 px-2 py-1 rounded inline-block">{profile.company.gstNumber}</p>
                                     </div>
                                 )}
-                                
+
                                 <div className="pt-2">
                                     <Link href="/onboarding/company">
                                         <Button variant="outline" className="w-full text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 bg-white shadow-sm">

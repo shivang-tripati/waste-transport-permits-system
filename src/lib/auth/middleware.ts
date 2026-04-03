@@ -30,8 +30,7 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
 
     if (!token) {
         // 2. try cookies (nextjs)
-        const cookieStore = await cookies();
-        token = cookieStore.get('accessToken')?.value as string;
+        token = request.cookies.get('accessToken')?.value ?? null;
     }
 
     if (!token) {

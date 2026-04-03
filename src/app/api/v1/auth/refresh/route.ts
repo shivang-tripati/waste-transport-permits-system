@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import {
     verifyRefreshToken,
@@ -24,10 +24,10 @@ export async function POST(request: NextRequest) {
         // 2️⃣ Extract refresh token
         let tokenString = body?.refreshToken;
 
-        const cookieStore = await cookies();
+        // const cookieStore = await cookies();
 
         if (!tokenString) {
-            tokenString = cookieStore.get("refreshToken")?.value;
+            tokenString = request.cookies.get("refreshToken")?.value;
         }
 
         if (!tokenString) {

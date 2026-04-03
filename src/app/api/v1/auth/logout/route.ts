@@ -1,33 +1,47 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticate } from '@/lib/auth';
-import { createSuccessResponse, createErrorResponse } from '@/lib/api';
+import { verifyRefreshToken } from '@/lib/auth';
+import { createSuccessResponse } from '@/lib/api';
 
 export async function POST(request: NextRequest) {
     try {
-        // Authenticate
-        const authResult = await authenticate(request);
+        const refreshToken = request.cookies.get("refreshToken")?.value;
 
-        if (!authResult.success) {
-            return authResult.response;
+        if (refreshToken) {
+            const decoded = verifyRefreshToken(refreshToken);
+
+            if (decoded) {
+                await prisma.refreshToken.updateMany({
+                    where: {
+                        id: decoded.data.tokenId,
+                        revokedAt: null,
+                    },
+                    data: {
+                        revokedAt: new Date(),
+                    },
+                });
+            }
         }
 
-        // Revoke all refresh tokens for this user
-        await prisma.refreshToken.updateMany({
-            where: {
-                userId: authResult.user.userId,
-                revokedAt: null,
-            },
-            data: {
-                revokedAt: new Date(),
-            },
+        const response = createSuccessResponse({
+            message: "Logged out successfully",
         });
 
-        return createSuccessResponse({
-            message: 'Logged out successfully',
-        });
+        response.cookies.set("accessToken", "", { maxAge: 0, path: "/" });
+        response.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+
+        return response;
+
     } catch (error) {
-        console.error('Logout error:', error);
-        return createErrorResponse(error);
+        console.error("Logout error:", error);
+
+        const response = createSuccessResponse({
+            message: "Logged out",
+        });
+
+        response.cookies.set("accessToken", "", { maxAge: 0, path: "/" });
+        response.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+
+        return response;
     }
 }

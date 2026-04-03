@@ -217,6 +217,10 @@ export const cancelPermitSchema = z.object({
 export const createWeighmentSchema = z.object({
     permitId: z.string().uuid('Invalid permit ID'),
     plantId: z.string().uuid('Invalid plant ID'),
+    firstWeighmentAt: z.iso.datetime({ offset: true }).optional(),
+    firstWeight: z.number().positive().optional(),
+    secondWeighmentAt: z.iso.datetime({ offset: true }).optional(),
+    secondWeight: z.number().nonnegative().optional(),
     grossWeight: z.number().positive().optional(),
     tareWeight: z.number().nonnegative().optional(),
     notes: z.string().optional(),

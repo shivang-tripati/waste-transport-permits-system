@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: 60 * 60 * 24 * 1, // 1 day
+            maxAge: 60 * 30,
         });
 
         response.cookies.set('refreshToken', refreshToken, {
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: 60 * 60 * 24 * 15, // 10 days
+            maxAge: 60 * 60 * 24 * 1, // 10 days
         });
 
         return response;

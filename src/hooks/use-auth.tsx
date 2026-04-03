@@ -94,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: "POST",
         credentials: "include",
       });
+      router.push('/login');
     } catch (err) {
       console.error("Logout failed:", err);
     }
