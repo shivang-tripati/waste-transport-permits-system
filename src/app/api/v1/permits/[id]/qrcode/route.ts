@@ -51,7 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // Generate verification URL
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const verificationUrl = `${appUrl}/verify?token=${permit.token}`;
+        const verificationUrl = `${appUrl}/compliance/verify?token=${permit.token}`;
 
         // Generate QR code as data URL
         const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {

@@ -10,54 +10,7 @@ import { toPng } from "html-to-image";
 import { useRef } from "react";
 import { getEvidenceUrl } from '@/lib/utils';
 
-interface Evidence {
-  id: string;
-  fileName: string;
-  filePath: string;
-  fileSize: number;
-  mimeType: string;
-  description?: string;
-  createdAt: string;
-}
-
-interface PermitDetail {
-  id: string;
-  permitNumber: string;
-  token: string;
-  status: string;
-  wasteType: string;
-  estimatedWeight?: number;
-  estimatedVolume?: number;
-  wasteDescription?: string;
-  pickupAddress: string;
-  pickupCity: string;
-  pickupState: string;
-  pickupPincode: string;
-  driverName?: string;
-  driverPhone?: string;
-  vehicleNumber?: string;
-  vehicleType?: string;
-  validFrom?: string;
-  validUntil?: string;
-  rejectionReason?: string;
-  createdAt: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  project: { id: string; name: string; address: string; city: string; company: { id: string; name: string } };
-  plant: { id: string; name: string; code: string; address: string; city: string };
-  user: { id: string; name: string; email: string; phone?: string };
-  weighments: Array<{
-    id: string;
-    weighmentNumber: string;
-    status: string;
-    firstWeight?: number;
-    secondWeight?: number;
-    netWeight?: number;
-    fileUrl?: string;
-    weighedAt?: string;
-  }>;
-  wasteEvidences: Evidence[];
-}
+import { PermitDetail} from '@/types';
 
 interface QRCodeData {
   qrCode: string;
@@ -121,7 +74,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
     setActionLoading(true);
     try {
       const result = await post<PermitDetail>(`/permits/${id}/submit`, submitData);
-      if (result.success && result.data) {
+      if (result && result.data) {
         setPermit(result.data);
         setShowSubmitModal(false);
       } else {
@@ -190,26 +143,26 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <div className="">
+      <div className="printable-permit">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+            <Button className="no-print" variant="ghost" size="sm" onClick={() => router.back()}>
               ← Back
             </Button>
             <h1 className="text-2xl font-bold mt-2">{permit.permitNumber || 'Permit Detail'}</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 no-print">
             {isDraft && (
               <Button onClick={() => setShowSubmitModal(true)} isLoading={actionLoading}>
                 Submit for Approval
               </Button>
             )}
-            {isApproved && (
+            {/* {isApproved && (
               <Button variant="secondary" onClick={() => window.print()}>
                 Print Permit
               </Button>
-            )}
+            )} */}
             {/* {canStartTransit && (
               <Button onClick={handleStartTransit} isLoading={actionLoading}>
                 Start Transit
@@ -407,6 +360,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
             {/* Validity QR */}
             <div>
               {isApproved && qrData && (
+                console.log("VERIFICATION URL:",qrData.verificationUrl),
                 <>
                   <div ref={permitRef}>
                     <Card className="border-blue-100 bg-blue-50/30">
@@ -442,10 +396,10 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
 
                   <Button
                     onClick={handleDownload}
-                    className="w-full mt-4"
+                    className="w-full mt-4 no-print"
                     variant="secondary"
                   >
-                    Download Permit
+                    Download
                   </Button>
                 </>
               )}
@@ -500,7 +454,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
 
       {/* Submit Modal */}
       {showSubmitModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 no-print">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>Submit Permit for Approval</CardTitle>
@@ -568,6 +522,102 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
         </div>
       )}
 
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+
+          html,
+          body {
+            width: 100%;
+            min-height: auto;
+            color: #000;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          .no-print,
+          .no-print * {
+            display: none !important;
+          }
+
+          .printable-permit {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 12px !important;
+            line-height: 1.2 !important;
+            background: #fff !important;
+            color: #000 !important;
+          }
+
+          .printable-permit * {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+
+          .printable-permit .card,
+          .printable-permit .card > * {
+            box-shadow: none !important;
+            border-color: #ccc !important;
+          }
+
+          .printable-permit .overflow-x-auto {
+            overflow: visible !important;
+          }
+
+          .printable-permit table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+
+          .printable-permit th,
+          .printable-permit td {
+            padding: 0.35rem !important;
+          }
+
+          .printable-permit img {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block !important;
+          }
+
+          .printable-permit .grid,
+          .printable-permit .flex {
+            gap: 0.5rem !important;
+          }
+
+          .printable-permit .space-y-6 > *,
+          .printable-permit .space-y-4 > *,
+          .printable-permit .space-y-3 > * {
+            margin-top: 0.5rem !important;
+          }
+
+          .printable-permit .space-x-2 > * {
+            margin-left: 0.5rem !important;
+          }
+
+          .printable-permit .text-2xl {
+            font-size: 1.35rem !important;
+          }
+
+          .printable-permit .text-sm {
+            font-size: 0.78rem !important;
+          }
+
+          .printable-permit .text-xs {
+            font-size: 0.7rem !important;
+          }
+
+          .printable-permit h1 {
+            font-size: 1.4rem !important;
+            margin-bottom: 0.25rem !important;
+          }
+        }
+      `}</style>
     </>
   );
 }

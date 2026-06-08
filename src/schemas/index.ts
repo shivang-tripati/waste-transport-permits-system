@@ -100,7 +100,7 @@ export const createProjectSchema = z.object({
     pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
-    companyId: z.string().uuid('Invalid company ID'),
+    companyId: z.string().uuid('Invalid company ID').optional()
 });
 
 export const updateProjectSchema = createProjectSchema.partial().omit({ companyId: true });
@@ -174,10 +174,14 @@ export const createPermitSchema = z.object({
     vehicleType: z.string().optional(),
     licenseNumber: z
         .string()
+        .trim()
         .toUpperCase()
         .regex(
-            /^[A-Z]{2}[- ]?\d{2}[- ]?\d{4}[- ]?\d{4,7}$/,
-            { message: "Invalid Indian driving license number format" }
+            /^[A-Z]{2}\d{2}\d{4}\d{7}$/,
+            {
+                message:
+                    "License number should be like DL0420110012345",
+            }
         )
         .optional(),
 

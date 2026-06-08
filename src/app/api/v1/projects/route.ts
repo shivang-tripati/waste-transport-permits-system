@@ -114,27 +114,41 @@ export async function POST(request: NextRequest) {
 
         const data = validation.data;
 
+        const companyId = data.companyId ?? user.companyId;
+
+        if (!companyId) {
+            return createErrorResponse(
+                CommonErrors.validationError({
+                    companyId: ['Company is required'],
+                })
+            );
+        }
+
         // Verify company exists
         const company = await prisma.company.findUnique({
-            where: { id: data.companyId },
+            where: { id: companyId },
         });
 
         if (!company) {
             return createErrorResponse(CommonErrors.notFound('Company'));
         }
 
-        // Non-admins can only create projects for their own company
         if (!isAdmin(user.role)) {
-            if (user.companyId !== data.companyId) {
+            if (user.companyId !== companyId) {
                 return createErrorResponse(
                     CommonErrors.forbidden('You can only create projects for your own company')
                 );
             }
         }
 
+        const { companyId: _, ...projectData } = data;
+
         // Create project
         const project = await prisma.project.create({
-            data,
+            data: {
+                ...projectData,
+                companyId
+            },
             include: {
                 company: { select: { id: true, name: true } },
             },

@@ -123,7 +123,7 @@ function VerificationContent() {
         setToken(scannedToken);
         setScanning(false);
         scanner.clear();
-        
+
         // Short delay to ensure state update before fetch
         setTimeout(() => {
           router.push(`/verify?token=${scannedToken}`);
@@ -131,10 +131,10 @@ function VerificationContent() {
           // so we trigger it manually here if needed or let the router state handle it.
           // For simplicity, let's just trigger it:
           const triggerVerify = async () => {
-             setLoading(true);
-             const res = await get<VerificationResult>(`/verify?token=${scannedToken}`);
-             if (res.success && res.data) setResult(res.data);
-             setLoading(false);
+            setLoading(true);
+            const res = await get<VerificationResult>(`/verify?token=${scannedToken}`);
+            if (res.success && res.data) setResult(res.data);
+            setLoading(false);
           };
           triggerVerify();
         }, 100);
@@ -205,16 +205,16 @@ function VerificationContent() {
           <Skeleton className="h-48 w-full rounded-xl" />
           <Skeleton className="h-48 w-full rounded-xl" />
         </div>
-      )}
+      )
+      }
 
       {result && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Validity Hero Card */}
-          <Card className={`overflow-hidden border-0 shadow-xl ${
-            result.verification.isActive 
-              ? 'bg-gradient-to-br from-green-600 to-emerald-700 text-white' 
+          <Card className={`overflow-hidden border-0 shadow-xl ${result.verification.isActive
+              ? 'bg-gradient-to-br from-green-600 to-emerald-700 text-white'
               : 'bg-gradient-to-br from-red-600 to-rose-700 text-white'
-          }`}>
+            }`}>
             <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
               <div className="p-4 bg-white/20 rounded-full animate-pulse">
                 {result.verification.isActive ? (
@@ -227,7 +227,7 @@ function VerificationContent() {
                   </svg>
                 )}
               </div>
-              
+
               <div>
                 <h2 className="text-4xl font-black uppercase tracking-widest mb-1">
                   {result.verification.isActive ? 'Valid Permit' : 'Invalid Permit'}
@@ -246,11 +246,11 @@ function VerificationContent() {
 
               {!result.verification.isActive && (
                 <div className="bg-white/10 px-6 py-2 rounded-full backdrop-blur-md">
-                   <p className="font-bold underline uppercase tracking-wider">
-                     Reason: {result.verification.validityStatus === 'EXPIRED' ? 'Validity Expired' : 
-                             result.verification.validityStatus === 'NOT_YET_VALID' ? 'Trip Not Started Yet' : 
-                             'Inactive Status (' + result.status + ')'}
-                   </p>
+                  <p className="font-bold underline uppercase tracking-wider">
+                    Reason: {result.verification.validityStatus === 'EXPIRED' ? 'Validity Expired' :
+                      result.verification.validityStatus === 'NOT_YET_VALID' ? 'Trip Not Started Yet' :
+                        'Inactive Status (' + result.status + ')'}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -261,8 +261,8 @@ function VerificationContent() {
             <Card className="shadow-sm border-primary/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
-                   Vehicle & Waste
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>
+                  Vehicle & Waste
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -276,8 +276,8 @@ function VerificationContent() {
             <Card className="shadow-sm border-primary/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
-                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                   Journey
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Journey
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -313,7 +313,7 @@ export default function VerifyPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950">
       <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading verification flow...</div>}>
-         <VerificationContent />
+        <VerificationContent />
       </Suspense>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton } from '@/components/ui';
 import { get } from '@/lib/api/client';
@@ -25,8 +26,10 @@ interface UserDashboardData {
 
 export default function UserDashboardPage() {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [data, setData] = useState<UserDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasIdentityDocs, setHasIdentityDocs] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,13 +38,21 @@ export default function UserDashboardPage() {
         if (result.success) {
           setData(result.data || null);
         }
+        
+        // Check for identity documents if user is individual
+        if (user?.role === 'INDIVIDUAL') {
+          const profileResult = await get<any>('/users/profile');
+          if (profileResult.success && profileResult.data?.identityDocuments) {
+            setHasIdentityDocs(profileResult.data.identityDocuments.length > 0);
+          }
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user?.role]);
 
   if (loading) {
     return (
@@ -70,6 +81,50 @@ export default function UserDashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Onboarding Banner - Company */}
+      {user && user.role === 'COMPANY_USER' && !user.companyId && pathname !== '/dashboard/profile' && !pathname.includes('onboarding') && (
+        <div className="mb-6 bg-red-50 border border-red-200 p-4 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-red-900">Onboarding Incomplete</p>
+              <p className="text-sm text-red-700">You must register your company and create a project before you can apply for permits to transport waste.</p>
+            </div>
+          </div>
+          <Link href="/onboarding/company">
+            <Button variant="outline" size="sm" className="bg-white border-red-200 text-red-700 hover:bg-red-50">
+              Complete Setup
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Onboarding Banner - Individual */}
+      {user && user.role === 'INDIVIDUAL' && !hasIdentityDocs && pathname !== '/dashboard/profile' && !pathname.includes('onboarding') && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-amber-900">Verification Required</p>
+              <p className="text-sm text-amber-700">Please upload your Aadhaar and PAN card to verify your identity and start creating permits.</p>
+            </div>
+          </div>
+          <Link href="/onboarding/profile">
+            <Button variant="outline" size="sm" className="bg-white border-amber-200 text-amber-700 hover:bg-amber-50">
+              Verify Now
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* Welcome */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">

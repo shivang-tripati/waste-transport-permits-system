@@ -8,9 +8,13 @@ export class LocalStorageProvider implements StorageProvider {
     private baseUrl: string;
 
     constructor() {
-        // In Next.js, 'public' folder is served statically
-        this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        this.uploadDir =
+            process.env.STORAGE_LOCAL_PATH ||
+            path.join(process.cwd(), 'uploads');
+
+        this.baseUrl =
+            process.env.NEXT_PUBLIC_APP_URL ||
+            'http://localhost:3000';
     }
 
     async upload(file: Buffer, filePath: string, mimeType: string): Promise<string> {

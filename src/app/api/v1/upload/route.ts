@@ -6,6 +6,21 @@ import { createErrorResponse, createSuccessResponse, CommonErrors } from '@/lib/
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
+const folderMap: Record<string, string> = {
+    waste_evidence: 'public/evidence',
+    weighment: 'public/weighments',
+
+    aadhaar: 'private/aadhaar',
+    pan: 'private/pan',
+    identity: 'private/identity',
+
+    company_document: 'private/company',
+
+    misc: 'misc',
+};
+
+
+
 export async function POST(request: NextRequest) {
     try {
         // Authenticate user
@@ -40,8 +55,7 @@ export async function POST(request: NextRequest) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const ext = path.extname(file.name) || '.jpg';
-        const folder = type === 'waste_evidence' ? 'evidence' :
-            type === 'identity' ? 'identity' : 'misc';
+        const folder = folderMap[type || 'misc'] || 'misc';
         const fileName = `${uuidv4()}${ext}`;
         const filePath = `${folder}/${year}/${month}/${fileName}`;
 

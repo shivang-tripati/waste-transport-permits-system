@@ -246,8 +246,11 @@ export default function NewPermitPage() {
               <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
                 {error}
               </div>
-            )}
+            )
+            
+            }
             {Object.keys(errors).length > 0 && (
+
               <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 Please fix the highlighted fields before submitting.
               </div>

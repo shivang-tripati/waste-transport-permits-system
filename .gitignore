@@ -17,6 +17,11 @@
 /.next/
 /out/
 
+
+/dist
+
+/public/uploads/**
+
 # production
 /build
 

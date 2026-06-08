@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: transport-permit-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: transport-permit-app
+
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - uploads_data:/app/uploads
+
+    environment:
+      NODE_ENV: production
+
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/transport_permit_db
+
+      NEXTAUTH_SECRET: 7f3c9a8d2e4b6c1f9d0a5b7c8e2f4a1d3c6e9f0b2a7d8c5e1f9a3b7c4d6e8f0
+      NEXTAUTH_URL: https://www.malbafreegurugram.com
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:

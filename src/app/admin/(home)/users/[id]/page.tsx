@@ -30,36 +30,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
-interface UserDetail extends Record<string, any> {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    role: string;
-    isActive: boolean;
-    createdAt: string;
-    company?: {
-        id: string;
-        name: string;
-        registrationNumber?: string;
-        projects: Array<{ id: string, name: string, city: string }>;
-    };
-    identityDocuments: Array<{
-        id: string;
-        type: string;
-        documentNumber: string;
-        filePath?: string;
-        isVerified: boolean;
-    }>;
-    recentPermits: Array<{
-        id: string;
-        permitNumber: string;
-        status: string;
-        createdAt: string;
-        project?: { name: string };
-        plant: { name: string };
-    }>;
-}
+import { UserDetail } from '@/types';
 
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -117,9 +88,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
-                {/* Profile Card */}
-                <div className="lg:col-span-1 space-y-6">
+            <div className="grid gap-6">
+                <div className="grid lg:grid-cols-2 gap-6">
+                    {/* Profile Card */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Profile Information</CardTitle>
@@ -209,13 +180,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                         </CardContent>
                     </Card>
 
-                    {user.identityDocuments && user.identityDocuments.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Identity Documents</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {user.identityDocuments.map((doc) => (
+                    {/* Identity Documents */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Identity Documents</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {user.identityDocuments && user.identityDocuments.length > 0 ? (
+                                user.identityDocuments.map((doc) => (
                                     <div key={doc.id} className="p-4 border rounded-xl space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -245,15 +217,18 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                             <p className="text-xs text-amber-600 italic">No document copy uploaded</p>
                                         )}
                                     </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    )}
+                                ))
+                            ) : (
+                                <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+                                    No identity documents have been uploaded for this user.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Association Card */}
-                <div className="lg:col-span-2 space-y-6">
-                    {user.role === 'COMPANY_USER' && user.company && (
+                {user.role === 'COMPANY_USER' && user.company && (
+                    <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
                                 <div className="flex justify-between items-center text-sm">
@@ -264,7 +239,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 sm:flex-row sm:items-start">
                                     <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center border text-slate-600">
                                         <Building2 className="w-6 h-6" />
                                     </div>
@@ -297,13 +272,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                 </div>
                             </CardContent>
                         </Card>
-                    )}
+                    </div>
+                )}
 
+                <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="flex items-center gap-2 text-sm italic py-2">
                                 <FileText className="w-5 h-5 text-gray-400" />
-                                Recent Permits ({user._count.permits})
+                                Recent Permits ({user._count?.permits ?? user.recentPermits.length})
                             </CardTitle>
                             <Link href={`/admin/permits?userId=${user.id}`} className="text-xs text-blue-600 hover:underline">
                                 View All
