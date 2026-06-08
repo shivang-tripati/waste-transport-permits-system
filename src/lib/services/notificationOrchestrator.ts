@@ -16,8 +16,7 @@ export interface NotificationParams {
 }
 
 /**
- * Sends a template notification and logs it to the database.
- * This should be called without 'await' in API routes to avoid blocking.
+ *  Sends a notification by triggering.
  */
 export async function sendTemplateNotification({
     eventType,
