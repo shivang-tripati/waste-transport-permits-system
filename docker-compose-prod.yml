@@ -39,13 +39,6 @@ services:
     volumes:
       - uploads_data:/app/uploads
 
-    environment:
-      NODE_ENV: production
-
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/transport_permit_db
-
-      NEXTAUTH_SECRET: 7f3c9a8d2e4b6c1f9d0a5b7c8e2f4a1d3c6e9f0b2a7d8c5e1f9a3b7c4d6e8f0
-      NEXTAUTH_URL: https://www.malbafreegurugram.com
 
     depends_on:
       postgres:

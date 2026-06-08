@@ -3,14 +3,15 @@ import path from "path";
 
 export async function GET(
     request: Request,
-    { params }: { params: { path: string[] } }
+    { params }: { params: Promise<{ path: string[] }> }
 ) {
+    const { path: pathSegments } = await params;
     const uploadDir =
         process.env.STORAGE_LOCAL_PATH || "/app/uploads";
 
     const filePath = path.join(
         uploadDir,
-        ...params.path
+        ...pathSegments
     );
 
     try {
