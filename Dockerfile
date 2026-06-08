@@ -62,7 +62,7 @@ USER nextjs
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget -qO- http://localhost:3000 || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD node -e "require('http').get('http://127.0.0.1:3000',(r)=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--", "./entrypoint.sh"]

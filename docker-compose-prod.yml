@@ -37,7 +37,7 @@ services:
       - .env
 
     volumes:
-      - uploads_data:/app/uploads
+      - /opt/transport-permit/uploads:/app/uploads
 
 
     depends_on:
