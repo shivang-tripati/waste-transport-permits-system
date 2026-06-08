@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { authenticate } from '@/lib/auth/middleware';
+import { extractBearerToken, verifyAccessTokenEdge } from '@/lib/auth/edge';
 
 // Public routes - exact matches only
 const publicExactRoutes = [
@@ -25,6 +25,30 @@ const adminRoutes = ['/admin', '/admin/permits', '/admin/users', '/admin/setting
 // Define routes that require company access
 const companyRoutes = ['/company', '/company/permits', '/company/compliance'];
 
+async function validateSession(request: NextRequest, token: string) {
+    const url = new URL('/api/v1/auth/validate', request.url);
+    const headers = new Headers();
+
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const cookieHeader = request.headers.get('cookie');
+    if (cookieHeader) {
+        headers.set('cookie', cookieHeader);
+    }
+
+    try {
+        return await fetch(url.toString(), {
+            method: 'GET',
+            headers,
+            cache: 'no-store',
+        });
+    } catch {
+        return null;
+    }
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
@@ -41,19 +65,43 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Authenticate user
-    const authResult = await authenticate(request);
+    const authHeader = request.headers.get('authorization');
+    let token = extractBearerToken(authHeader);
 
-    // If not authenticated, redirect to unauthorized
-    if (!authResult.success) {
+    if (!token) {
+        token = request.cookies.get('accessToken')?.value ?? null;
+    }
+
+    if (!token) {
         const url = new URL('/unauthorized', request.url);
         url.searchParams.set('redirect', pathname);
         return NextResponse.redirect(url);
     }
 
-    const { user } = authResult;
+    const decoded = await verifyAccessTokenEdge(token);
 
-    // Check admin routes
+    if (!decoded) {
+        const url = new URL('/unauthorized', request.url);
+        url.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(url);
+    }
+
+    const validationResponse = await validateSession(request, token);
+    if (!validationResponse || validationResponse.status !== 200) {
+        const url = new URL('/unauthorized', request.url);
+        url.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(url);
+    }
+
+    const payload = await validationResponse.json();
+    const user = payload?.data?.user ?? payload?.user;
+
+    if (!user) {
+        const url = new URL('/unauthorized', request.url);
+        url.searchParams.set('redirect', pathname);
+        return NextResponse.redirect(url);
+    }
+
     if (adminRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
         if (user.role !== 'ADMIN') {
             const url = new URL('/unauthorized', request.url);
@@ -62,7 +110,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // Check company routes
     if (companyRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))) {
         if (user.role !== 'COMPANY_USER' && user.role !== 'ADMIN') {
             const url = new URL('/unauthorized', request.url);
@@ -71,7 +118,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // Allow access
     return NextResponse.next();
 }
 
