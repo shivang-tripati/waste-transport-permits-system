@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { extractBearerToken, verifyAccessTokenEdge } from '@/lib/auth/edge';
 
+const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    'http://127.0.0.1:3000';
+
+
 // Public routes - exact matches only
 const publicExactRoutes = [
     '/',
@@ -30,8 +35,21 @@ const adminRoutes = ['/admin', '/admin/permits', '/admin/users', '/admin/setting
 const companyRoutes = ['/company', '/company/permits', '/company/compliance'];
 
 async function validateSession(request: NextRequest, token: string) {
-    const url = new URL('/api/v1/auth/validate', request.url);
+    const url = new URL(
+        '/api/v1/auth/validate',
+        baseUrl
+    );
     const headers = new Headers();
+
+    console.log(
+        '[AUTH_DEBUG] Request URL:',
+        request.url
+    );
+
+    console.log(
+        '[AUTH_DEBUG] Validate URL:',
+        url.toString()
+    );
 
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
