@@ -39,7 +39,7 @@ export default function GovFooter() {
             <ul className="space-y-2">
               <li>
                 <Link href="/compliance/verify" className="hover:underline">
-                  Verify Permit
+                  Permit Verification
                 </Link>
               </li>
               <li>

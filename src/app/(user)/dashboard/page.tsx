@@ -41,7 +41,7 @@ export default function UserDashboardPage() {
         
         // Check for identity documents if user is individual
         if (user?.role === 'INDIVIDUAL') {
-          const profileResult = await get<any>('/users/profile');
+          const profileResult = await get<any>('/profile');
           if (profileResult.success && profileResult.data?.identityDocuments) {
             setHasIdentityDocs(profileResult.data.identityDocuments.length > 0);
           }

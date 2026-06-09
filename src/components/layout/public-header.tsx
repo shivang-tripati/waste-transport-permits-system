@@ -20,7 +20,7 @@ export function PublicHeader() {
               Contact
             </Link>
             <Link href="/compliance/verify" className="text-blue-100 hover:text-white transition-colors">
-              Verify Permit
+              Permit Verification
             </Link>
             <Link href="/login">
               <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-blue-900">

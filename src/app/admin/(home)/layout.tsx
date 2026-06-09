@@ -186,7 +186,7 @@ export default function AdminLayout({
               target="_blank"
               className="hidden sm:flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              Verify Permit
+              Permit Verification
               <ExternalLink className="w-4 h-4" />
             </Link>
           </div>

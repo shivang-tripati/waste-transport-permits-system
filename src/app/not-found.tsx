@@ -35,7 +35,7 @@ export default function NotFound() {
             </Link>
             <Link href="/verify" className="flex-1 max-w-[200px]">
               <Button variant="outline" className="w-full h-14 text-lg font-black bg-white border-2 border-slate-200 text-slate-600 rounded-2xl transition-all hover:bg-slate-50 hover:border-slate-300">
-                VERIFY PERMIT
+                Permit Verification
               </Button>
             </Link>
           </div>

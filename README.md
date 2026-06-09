@@ -95,7 +95,7 @@ src/
 - `POST /api/v1/permits/:id/reject` - Reject permit (admin)
 
 ### Public
-- `GET /api/v1/verify?token=xxx` - Verify permit (no auth required)
+- `GET /api/v1/verify?token=xxx` - Permit Verification (no auth required)
 
 ## Development Notes
 

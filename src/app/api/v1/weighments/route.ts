@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
         const data = validation.data;
 
-        // Verify permit exists and is in valid state
+        // Permit Verification exists and is in valid state
         const permit = await prisma.permit.findUnique({
             where: { id: data.permitId },
         });

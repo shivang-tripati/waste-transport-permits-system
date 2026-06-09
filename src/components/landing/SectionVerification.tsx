@@ -15,7 +15,7 @@ export default function SectionVerification() {
             </h3>
 
             <p className="text-gray-700 mb-4">
-              Authorized officers can verify permit authenticity and validity
+              Authorized officers can Permit Verification authenticity and validity
               in real time during transit or at checkpoints.
             </p>
 

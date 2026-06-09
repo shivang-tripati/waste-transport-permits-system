@@ -4,10 +4,20 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '@/hooks';
+import { Select } from '@/components/ui/select';;
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui';
 import { registerSchema, RegisterInput } from '@/schemas';
-import { Select } from '@/components/ui/select';
+
+// Extend the schema to include agreement
+const registerWithAgreementSchema = registerSchema.extend({
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: 'You must agree to the Terms of Service and Privacy Policy',
+  }),
+});
+
+type RegisterWithAgreementInput = RegisterInput & { agreeToTerms: boolean };
 
 export default function RegisterPage() {
   const { register: registerUser } = useAuth();
@@ -17,17 +27,20 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<RegisterWithAgreementInput>({
+    resolver: zodResolver(registerWithAgreementSchema),
     defaultValues: {
       role: 'INDIVIDUAL',
+      agreeToTerms: false,
     },
   }); 
   
-  const onSubmit = async (data: RegisterInput) => {
+  const onSubmit = async (data: RegisterWithAgreementInput) => {
     setError(null);
     try {
-      await registerUser(data);
+      // Remove agreeToTerms before sending to API
+      const { agreeToTerms, ...registerData } = data;
+      await registerUser(registerData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     }
@@ -44,8 +57,7 @@ export default function RegisterPage() {
           <p className="text-sm text-gray-500 mt-1">Get started with Transport Permit System</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} 
-          className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
               <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
                 {error}
@@ -93,6 +105,34 @@ export default function RegisterPage() {
               <option value="INDIVIDUAL">INDIVIDUAL</option>
               <option value="COMPANY_USER">Company</option>
             </Select>
+            
+            {/* Terms and Conditions Checkbox */}
+            <div className="space-y-2">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register('agreeToTerms')}
+                  className="mt-1 h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span className="text-sm text-gray-700">
+                  I agree to the{' '}
+                  <Link href="/terms-of-service" target="_blank" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link href="/privacy-policy" target="_blank" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                  {' '}and acknowledge the{' '}
+                  <Link href="/compliance" target="_blank" className="text-primary hover:underline">
+                    Compliance Requirements
+                  </Link>
+                </span>
+              </label>
+              {errors.agreeToTerms && (
+                <p className="text-sm text-red-600">{errors.agreeToTerms.message}</p>
+              )}
+            </div>
             
             <Button type="submit" className="w-full" isLoading={isSubmitting}>
               Create Account
