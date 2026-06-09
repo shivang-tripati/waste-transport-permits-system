@@ -43,12 +43,20 @@ async function validateSession(request: NextRequest, token: string) {
     }
 
     try {
+        console.log(
+            '[AUTH_DEBUG] Validate URL:',
+            url.toString()
+        );
         return await fetch(url.toString(), {
             method: 'GET',
             headers,
             cache: 'no-store',
         });
-    } catch {
+    } catch (error) {
+        console.error(
+            '[AUTH_DEBUG] Validate fetch failed:',
+            error
+        );
         return null;
     }
 }
