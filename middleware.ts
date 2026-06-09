@@ -26,6 +26,14 @@ const publicExactRoutes = [
 // Public route prefixes - anything starting with these is public
 const publicPrefixes = [
     '/_next',
+    '/public',
+    '/about',
+    '/compliance/verify',
+    '/verify',
+    '/privacy-policy',
+    '/contact',
+    '/terms-of-service',
+
 ];
 
 // Define routes that require admin access
