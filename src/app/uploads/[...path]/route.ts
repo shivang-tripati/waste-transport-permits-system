@@ -14,24 +14,43 @@ export async function GET(
         // Build the full file path
         const filePath = path.join(uploadDir, ...pathSegments);
         
+        // DEBUG: Log the paths
+        console.log('[UPLOAD_DEBUG] STORAGE_LOCAL_PATH:', process.env.STORAGE_LOCAL_PATH);
+        console.log('[UPLOAD_DEBUG] uploadDir:', uploadDir);
+        console.log('[UPLOAD_DEBUG] pathSegments:', pathSegments);
+        console.log('[UPLOAD_DEBUG] full filePath:', filePath);
+        
         // Check if this is a private file
         const isPrivate = pathSegments[0] === 'private';
         
         // For private files, require authentication
         if (isPrivate) {
+            console.log('[UPLOAD_DEBUG] Private file, checking auth');
             const authResult = await authenticate(request);
             if (!authResult.success) {
+                console.log('[UPLOAD_DEBUG] Auth failed');
                 return new NextResponse("Unauthorized", { status: 401 });
             }
-            
-            // Optional: Check if user has permission to access this specific file
-            // You could query the database to verify ownership
+            console.log('[UPLOAD_DEBUG] Auth success');
         }
         
         // Check if file exists
         try {
             await fs.access(filePath);
-        } catch {
+            console.log('[UPLOAD_DEBUG] File exists!');
+        } catch (error) {
+            console.error('[UPLOAD_DEBUG] File NOT found at:', filePath);
+            console.error('[UPLOAD_DEBUG] Error:', error);
+            
+            // Try to list the directory to see what's there
+            const dir = path.dirname(filePath);
+            try {
+                const files = await fs.readdir(dir);
+                console.log('[UPLOAD_DEBUG] Files in directory:', files);
+            } catch (dirError) {
+                console.error('[UPLOAD_DEBUG] Cannot read directory:', dir);
+            }
+            
             return new NextResponse("Not Found", { status: 404 });
         }
         
@@ -50,8 +69,10 @@ export async function GET(
         
         // Set cache headers
         const cacheControl = isPrivate 
-            ? 'private, max-age=3600'  // Private files: cache for 1 hour
-            : 'public, max-age=3153600, immutable';  // Public files: cache for 1 year
+            ? 'private, max-age=3600'
+            : 'public, max-age=3153600, immutable';
+        
+        console.log('[UPLOAD_DEBUG] Serving file, size:', file.length);
         
         return new NextResponse(file, {
             headers: {
@@ -60,7 +81,7 @@ export async function GET(
             },
         });
     } catch (error) {
-        console.error('Error serving file:', error);
+        console.error('[UPLOAD_DEBUG] Error:', error);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
