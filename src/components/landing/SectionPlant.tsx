@@ -34,7 +34,7 @@ export default function SectionPlant() {
           {plantImages.map((item, i) => (
             <div key={i} className="border-2 border-[#6E2D5B] p-2 bg-white">
               <div className="aspect-video bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                <Image src={item.img} alt={item.label} width={500} height={500} className="w-full h-full object-cover" />
+                <img src={item.img} alt={item.label} width={500} height={500} className="w-full h-full object-cover" />
               </div>
               <p className="text-sm text-gray-600 p-2">{item.label}</p>
             </div>

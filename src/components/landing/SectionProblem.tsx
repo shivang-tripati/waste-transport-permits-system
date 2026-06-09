@@ -31,7 +31,7 @@ export default function SectionProblem() {
           {/* Image */}
           <div className="border rounded overflow-hidden bg-white">
             <div className="aspect-video bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-              <Image src={plantImg8} alt="Plant Image" className="w-full h-full object-cover" />    
+              <img src={plantImg8} alt="Plant Image" className="w-full h-full object-cover" />    
             </div>
           </div>
 

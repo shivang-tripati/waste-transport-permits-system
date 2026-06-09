@@ -67,7 +67,7 @@ export default function GovHeroSlider() {
             index === current ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <Image
+          <img
             src={slide.image}
             alt={slide.caption}
             fill

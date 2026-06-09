@@ -30,7 +30,7 @@ export default function SectionWasteClassification() {
 
 
               <div className="aspect-video bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                <Image src={plantImg4} alt="Segregated Waste" width={500} height={500} className="w-full h-full object-cover" />
+                <img src={plantImg4} alt="Segregated Waste" width={500} height={500} className="w-full h-full object-cover" />
               </div>
               
           </div>
@@ -50,7 +50,7 @@ export default function SectionWasteClassification() {
             </ul>
 
             <div className="aspect-video bg-gray-200 flex items-center justify-center text-sm text-gray-500">
-                <Image src={plantImg5} alt="Unsegregated Waste" width={500} height={500} className="w-full h-full object-cover" />
+                <img src={plantImg5} alt="Unsegregated Waste" width={500} height={500} className="w-full h-full object-cover" />
               </div>
           </div>
 

@@ -438,7 +438,7 @@ function IdentitySection({
                         if (isImage) {
                             return (
                                 <div className="text-center">
-                                    <Image
+                                    <img
                                         src={`/api/uploads/${filePath}`}
                                         alt={`${label} Copy`}
                                         width={200}

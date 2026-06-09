@@ -418,10 +418,10 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                       onClick={() => setLightboxIdx(idx)}
                       className="group relative aspect-[4/3] border rounded-xl overflow-hidden bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all hover:shadow-lg hover:scale-[1.02]"
                     >
-                      <Image
+                      <img
                         src={`/api/uploads/${evidence.filePath}`}
                         alt={evidence.fileName}
-                        fill
+                        
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
@@ -702,7 +702,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-4">
                 <div className="bg-white p-3 rounded-xl shadow-sm">
-                  <Image
+                  <img
                     src={qrData.qrCode}
                     alt="Permit QR"
                     width={180}
@@ -790,10 +790,9 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
             )}
 
             <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
-              <Image
+              <img
                 src={`/api/uploads/${permit.wasteEvidences[lightboxIdx].filePath}`}
                 alt={permit.wasteEvidences[lightboxIdx].fileName}
-                fill
                 className="object-contain rounded-xl"
                 sizes="90vw"
               />

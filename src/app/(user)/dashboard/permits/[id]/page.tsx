@@ -276,7 +276,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                     {permit.wasteEvidences.map((e) => (
                       <div key={e.id} className="relative group">
                         <div className="w-full max-w-sm">
-                          <Image
+                          <img
                             src={`/api/uploads/${e.filePath}`}
                             alt={e.fileName}
                             width={800} // Target "natural" resolution
@@ -369,7 +369,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                       </CardHeader>
                       <CardContent className="flex flex-col items-center gap-4">
                         <div className="bg-white p-4 rounded-xl shadow-sm">
-                          <Image
+                          <img
                             src={qrData.qrCode}
                             alt="Permit QR Code"
                             width={200}
