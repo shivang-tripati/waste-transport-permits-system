@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: NextRequest) {
     try {
+        console.log('[AUTH_DEBUG] Login request received');
         const body = await request.json();
 
         // Validate input
@@ -40,10 +41,13 @@ export async function POST(request: NextRequest) {
         });
 
         if (!user) {
+            console.log('[AUTH_DEBUG] Login failed: user not found');
             return createErrorResponse(
                 CommonErrors.unauthorized('Invalid email or password')
             );
         }
+
+        console.log(`[AUTH_DEBUG] User found: {id:${user.id},email:${user.email},role:${user.role}}`);
 
         if (!user.isActive) {
             return createErrorResponse(
@@ -53,10 +57,12 @@ export async function POST(request: NextRequest) {
 
         const isValidPassword = await verifyPassword(password, user.passwordHash);
         if (!isValidPassword) {
+            console.log('[AUTH_DEBUG] Login failed: password verification failed');
             return createErrorResponse(
                 CommonErrors.unauthorized('Invalid email or password')
             );
         }
+        console.log('[AUTH_DEBUG] Password verified');
 
         // Generate tokens
         const tokenId = uuidv4();
@@ -66,11 +72,13 @@ export async function POST(request: NextRequest) {
             role: user.role,
             companyId: user.companyId,
         });
+        console.log('[AUTH_DEBUG] Access token generated');
 
         const refreshToken = generateRefreshToken({
             userId: user.id,
             tokenId,
         });
+        console.log('[AUTH_DEBUG] Refresh token generated');
 
         // Store refresh token
         await prisma.refreshToken.create({
@@ -118,22 +126,30 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        const secure = process.env.NODE_ENV === 'production';
+        const sameSite = 'lax' as const;
+        const path = '/';
+        const maxAge = 60 * 30;
+        console.log(`[AUTH_DEBUG] Setting accessToken cookie: secure=${secure}, sameSite=${sameSite}, path=${path}, maxAge=${maxAge}`);
         response.cookies.set('accessToken', accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 60 * 30,
+            secure,
+            sameSite,
+            path,
+            maxAge,
         });
 
+        const refreshMaxAge = 60 * 60 * 24 * 1;
+        console.log(`[AUTH_DEBUG] Setting refreshToken cookie: secure=${secure}, sameSite=${sameSite}, path=${path}, maxAge=${refreshMaxAge}`);
         response.cookies.set('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 60 * 60 * 24 * 1, // 10 days
+            secure,
+            sameSite,
+            path,
+            maxAge: refreshMaxAge,
         });
 
+        console.log('[AUTH_DEBUG] Login response returned');
         return response;
     } catch (error) {
         console.error('Login error:', error);
