@@ -419,7 +419,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                       className="group relative aspect-[4/3] border rounded-xl overflow-hidden bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 transition-all hover:shadow-lg hover:scale-[1.02]"
                     >
                       <Image
-                        src={`/uploads/${evidence.filePath}`}
+                        src={`/api/uploads/${evidence.filePath}`}
                         alt={evidence.fileName}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -791,7 +791,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
 
             <div className="relative w-full" style={{ aspectRatio: '16/10' }}>
               <Image
-                src={`/uploads/${permit.wasteEvidences[lightboxIdx].filePath}`}
+                src={`/api/uploads/${permit.wasteEvidences[lightboxIdx].filePath}`}
                 alt={permit.wasteEvidences[lightboxIdx].fileName}
                 fill
                 className="object-contain rounded-xl"

@@ -207,7 +207,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                                                     variant="ghost"
                                                     size="sm"
                                                     className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                                    onClick={() => window.open(`/uploads/${doc.filePath}`, '_blank')}
+                                                    onClick={() => window.open(`/api/uploads/${doc.filePath}`, '_blank')}
                                                 >
                                                     <Eye className="w-4 h-4 mr-1" />
                                                     View

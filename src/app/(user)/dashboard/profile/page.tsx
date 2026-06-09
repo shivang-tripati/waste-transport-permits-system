@@ -439,7 +439,7 @@ function IdentitySection({
                             return (
                                 <div className="text-center">
                                     <Image
-                                        src={`/uploads/${filePath}`}
+                                        src={`/api/uploads/${filePath}`}
                                         alt={`${label} Copy`}
                                         width={200}
                                         height={200}
@@ -460,7 +460,7 @@ function IdentitySection({
                                     </div>
                                     <p className="text-sm font-medium mb-2">PDF Document</p>
                                     <a
-                                        href={`/uploads/${filePath}`}
+                                        href={`/api/uploads/${filePath}`}
                                         download
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -485,7 +485,7 @@ function IdentitySection({
                                 </div>
                                 <p className="text-sm font-medium mb-2">Document Attached</p>
                                 <a
-                                    href={`/uploads/${filePath}`}
+                                    href={`/api/uploads/${filePath}`}
                                     download
                                     target="_blank"
                                     rel="noopener noreferrer"

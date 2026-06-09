@@ -182,7 +182,7 @@ export default function AdminLayout({
           </div>
           <div className="flex items-center gap-4">
             <Link
-              href="/verify"
+              href="/compliance/verify"
               target="_blank"
               className="hidden sm:flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
             >

@@ -19,7 +19,7 @@ export function PublicHeader() {
             <Link href="/contact" className="text-blue-100 hover:text-white transition-colors">
               Contact
             </Link>
-            <Link href="/verify" className="text-blue-100 hover:text-white transition-colors">
+            <Link href="/compliance/verify" className="text-blue-100 hover:text-white transition-colors">
               Verify Permit
             </Link>
             <Link href="/login">

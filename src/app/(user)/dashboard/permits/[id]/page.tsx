@@ -277,7 +277,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                       <div key={e.id} className="relative group">
                         <div className="w-full max-w-sm">
                           <Image
-                            src={`/uploads/${e.filePath}`}
+                            src={`/api/uploads/${e.filePath}`}
                             alt={e.fileName}
                             width={800} // Target "natural" resolution
                             height={450}

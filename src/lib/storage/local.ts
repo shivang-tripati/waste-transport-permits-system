@@ -43,9 +43,20 @@ export class LocalStorageProvider implements StorageProvider {
     }
 
     getUrl(filePath: string): string {
-        // Basic implementation: assumes files are in public/uploads and served at /uploads
-        // Ensure we don't have double slashes
-        const cleanPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+    // Clean the path
+    const cleanPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+    
+    // If it's a private file, route through API for authentication
+    if (cleanPath.startsWith('private/')) {
+        return `/api/uploads/${cleanPath}`;
+    }
+    
+    // Public files can be served directly by nginx
+    if (cleanPath.startsWith('public/')) {
         return `/uploads/${cleanPath}`;
     }
+    
+    // Default fallback
+    return `/uploads/${cleanPath}`;
+}
 }

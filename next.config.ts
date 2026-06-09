@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    domains: ['www.malbafreegurugram.com', 'malbafreegurugram.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.malbafreegurugram.com',
+        port: '',
+        pathname: '/uploads/**',
+      },
+    ],
     qualities: [75, 100], // default is [75]
   },
 };
