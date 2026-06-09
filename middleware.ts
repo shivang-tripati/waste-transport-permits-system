@@ -6,8 +6,11 @@ import { extractBearerToken, verifyAccessTokenEdge } from '@/lib/auth/edge';
 const publicExactRoutes = [
     '/',
     '/login',
-    '/api/auth/login',
-    '/api/auth/refresh',
+    '/register',
+    '/api/v1/auth/login',
+    '/api/v1/auth/register',
+    '/api/v1/auth/forget-password',
+    '/api/v1/auth/refresh',
     '/verify',
     '/compliance/verify',
     '/unauthorized',
