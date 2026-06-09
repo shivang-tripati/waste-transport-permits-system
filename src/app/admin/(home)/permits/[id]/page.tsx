@@ -4,6 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, Button, StatusBadge, Skeleton } from '@/components/ui';
 import { get, post } from '@/lib/api/client';
+import { formatDateTime, formatForDatetimeLocal, getPermitDuration } from '@/lib/utils';
 import Image from 'next/image';
 
 interface PermitDetail {
@@ -147,10 +148,16 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
 
   const handleStartTransit = async () => {
     setActionLoading(true);
+
     try {
-      const result = await post<PermitDetail>(`/permits/${id}/transit`, {});
-      if (result.success && result.data) {
-        setPermit(result.data);
+      const result = await post(`/permits/${id}/transit`, {});
+
+      if (result.success) {
+        const refreshResult = await get<PermitDetail>(`/permits/${id}`);
+
+        if (refreshResult.success) {
+          setPermit(refreshResult.data ?? null);
+        }
       } else {
         alert(result.error?.message || 'Failed to start transit');
       }
@@ -165,7 +172,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
     try {
       const result = await post('/weighments', {
         permitId: id,
-        plantId: permit.plant.id,
+        plantId: permit.plant?.id,
         firstWeight: weighmentData.firstWeight ? parseFloat(weighmentData.firstWeight) : undefined,
         secondWeight: weighmentData.secondWeight ? parseFloat(weighmentData.secondWeight) : undefined,
         notes: weighmentData.notes
@@ -280,6 +287,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
+
       {/* ─── Quick-glance summary strip ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Driver & Vehicle — highlighted as most important */}
@@ -300,7 +308,11 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                 {permit.licenseNumber || "—"}
               </p>
               {permit.driverPhone && (
-                <p className="text-xs text-gray-500 mt-0.5">📞 {permit.driverPhone}</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  📞 <a href={`tel:${permit.driverPhone}`} className="text-blue-600 hover:underline">
+                    {permit.driverPhone}
+                  </a>
+                </p>
               )}
             </div>
           </div>
@@ -366,20 +378,30 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
         </div> */}
 
         {/* Pickup Location */}
-        <div className="col-span-2 lg:col-span-1 rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="text-rose-500">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-              </svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Pickup</p>
-              <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">{permit.project?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{permit.pickupCity}, {permit.pickupState}</p>
-            </div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+            Pickup
+          </p>
+
+          <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">
+            {permit.project?.name}
+          </p>
+
+          <p className="text-xs text-gray-500 truncate">
+            {permit.pickupCity}, {permit.pickupState}
+          </p>
+
+          {permit.validFrom && permit.validUntil && (
+            <>
+              <p className="text-xs text-gray-500 mt-2">
+                {formatDateTime(permit.validFrom)} → {formatDateTime(permit.validUntil)}
+              </p>
+
+              <p className="text-xs font-medium text-blue-600">
+                Requested for {getPermitDuration(permit.validFrom, permit.validUntil)}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
@@ -421,7 +443,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                       <img
                         src={`/api/uploads/${evidence.filePath}`}
                         alt={evidence.fileName}
-                        
+
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                       />
@@ -815,6 +837,29 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
           <Card className="w-full max-w-md shadow-2xl">
             <CardHeader><CardTitle>Approve Permit</CardTitle></CardHeader>
             <CardContent className="space-y-4">
+              {permit.validFrom && permit.validUntil && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+                    Requested Permit Window
+                  </p>
+
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm text-gray-900">
+                      <span className="font-medium">From:</span>{" "}
+                      {new Date(permit.validFrom).toLocaleString()}
+                    </p>
+
+                    <p className="text-sm text-gray-900">
+                      <span className="font-medium">Until:</span>{" "}
+                      {new Date(permit.validUntil).toLocaleString()}
+                    </p>
+
+                    <p className="text-sm font-semibold text-amber-800 pt-1 border-t border-amber-200">
+                      Duration: {getPermitDuration(permit.validFrom, permit.validUntil)}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until *</label>
                 <input
@@ -948,7 +993,15 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
               <Button
                 variant="secondary"
                 className="flex-1 py-2.5 text-sm font-semibold"
-                onClick={() => setShowApproveModal(true)}
+                onClick={() => {
+                  setValidUntil(
+  permit.validUntil
+    ? formatForDatetimeLocal(new Date(permit.validUntil))
+    : ''
+);
+
+                  setShowApproveModal(true);
+                }}
               >
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                 Approve

@@ -8,9 +8,9 @@ import Image from 'next/image';
 import { CarIcon, GlobeIcon, LocateFixed, LocateIcon } from 'lucide-react';
 import { toPng } from "html-to-image";
 import { useRef } from "react";
-import { getEvidenceUrl } from '@/lib/utils';
+import { getEvidenceUrl, getPermitDuration } from '@/lib/utils';
 
-import { PermitDetail} from '@/types';
+import { PermitDetail } from '@/types';
 
 interface QRCodeData {
   qrCode: string;
@@ -203,6 +203,58 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                     <p className="font-medium">{new Date(permit.submittedAt).toLocaleString()}</p>
                   </div>
                 )}
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div className='flex items-center gap-2'>
+                        <GlobeIcon className='text-primary' size={20} />
+                        <CardTitle>Overview</CardTitle>
+                      </div>
+                      <StatusBadge status={permit.status} />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm text-gray-500">Waste Type</p>
+                      <StatusBadge status={permit.wasteType} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Requested Weight</p>
+                      <p className="font-medium">{permit.estimatedWeight ? `${permit.estimatedWeight} kg` : '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Created At</p>
+                      <p className="font-medium">{new Date(permit.createdAt).toLocaleString()}</p>
+                    </div>
+                    {permit.validFrom && permit.validUntil && (
+                      <>
+                        <div>
+                          <p className="text-sm text-gray-500">Valid From</p>
+                          <p className="font-medium">
+                            {new Date(permit.validFrom).toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-sm text-gray-500">Valid Until</p>
+                          <p className="font-medium">
+                            {new Date(permit.validUntil).toLocaleString()}
+                          </p>
+                        </div>
+
+                        <div className="md:col-span-2 rounded-lg bg-blue-50 border border-blue-100 p-3">
+                          <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
+                            Requested Duration
+                          </p>
+                          <p className="text-sm font-semibold text-blue-900 mt-1">
+                            {getPermitDuration(permit.validFrom, permit.validUntil)}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
 
@@ -360,7 +412,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
             {/* Validity QR */}
             <div>
               {isApproved && qrData && (
-                console.log("VERIFICATION URL:",qrData.verificationUrl),
+                console.log("VERIFICATION URL:", qrData.verificationUrl),
                 <>
                   <div ref={permitRef}>
                     <Card className="border-blue-100 bg-blue-50/30">

@@ -28,6 +28,7 @@ const publicPrefixes = [
     '/_next',
     '/public',
     '/about',
+    '/compliance',
     '/compliance/verify',
     '/verify',
     '/privacy-policy',
