@@ -64,14 +64,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Set default validity (24 hours from now if not specified)
         const validFrom = data.validFrom ? new Date(data.validFrom) : new Date();
         if (!data.validUntil) {
-            return createErrorResponse(CommonErrors.badRequest('Valid until is required'));
+            return createErrorResponse(CommonErrors.badRequest('Permit expiry time is required'));
         }
         const validUntil = new Date(data.validUntil);
 
         // Validate validity period
         if (validUntil <= validFrom) {
             return createErrorResponse(
-                CommonErrors.badRequest('Valid until must be after valid from')
+                CommonErrors.badRequest('Permit expiry time must be after permit start time')
             );
         }
 

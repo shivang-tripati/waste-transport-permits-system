@@ -482,7 +482,7 @@ export default function NewPermitPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Valid Until
+                    Permit Expires At
                   </label>
 
                   <input

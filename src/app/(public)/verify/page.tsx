@@ -284,7 +284,7 @@ function VerificationContent() {
                 <DetailRow label="From" value={result?.project?.name} />
                 <DetailRow label="Owner" value={result?.project?.company?.name} />
                 <DetailRow label="To" value={result?.plant?.name} />
-                <DetailRow label="Valid Until" value={new Date(result?.validUntil).toLocaleString()} />
+                <DetailRow label="Permit Expires At" value={new Date(result?.validUntil).toLocaleString()} />
               </CardContent>
             </Card>
           </div>

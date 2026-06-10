@@ -209,7 +209,7 @@ export const submitPermitSchema = z.object({
 
 export const approvePermitSchema = z.object({
     validFrom: dateTimeField("Valid from").refine(val => val !== null, "Valid from is required"),
-    validUntil: dateTimeField("Valid until").refine(val => val !== null, "Valid until is required"),
+    validUntil: dateTimeField("Permit expiry time").refine(val => val !== null, "Permit expiry time is required"),
 });
 
 export const rejectPermitSchema = z.object({

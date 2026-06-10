@@ -1,27 +1,31 @@
 services:
-  postgres:
+  transport-db:
     image: postgres:16-alpine
     container_name: transport-permit-db
     restart: unless-stopped
-
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
 
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  app:
+    networks:
+      - transport-network
+
+  transport-app:
     build:
       context: .
       dockerfile: Dockerfile
@@ -31,18 +35,34 @@ services:
     restart: unless-stopped
 
     ports:
-      - "3000:3000"
-
+      - "127.0.0.1:3000:3000"
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+
+    depends_on:
+      transport-db:
+        condition: service_healthy
 
     volumes:
       - /opt/transport-permit/uploads:/app/uploads
+      - ./logs:/app/logs
+
+    networks:
+      - transport-network
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 
-    depends_on:
-      postgres:
-        condition: service_healthy
+networks:
+  transport-network:
+    driver: bridge 
 
 volumes:
   postgres_data:

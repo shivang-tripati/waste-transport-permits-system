@@ -378,7 +378,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
         </div> */}
 
         {/* Pickup Location */}
-        <div className="min-w-0 flex-1">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-8">
           <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
             Pickup
           </p>
@@ -387,9 +387,11 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
             {permit.project?.name}
           </p>
 
-          <p className="text-xs text-gray-500 truncate">
-            {permit.pickupCity}, {permit.pickupState}
-          </p>
+          <p className="text-xs text-gray-500 leading-tight">
+  {permit.pickupAddress}<br />
+  {permit.pickupCity}, {permit.pickupState}
+</p>
+
 
           {permit.validFrom && permit.validUntil && (
             <>
@@ -423,7 +425,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                       </svg>
                     </div>
                     <div>
-                      <CardTitle className="text-base">Waste Evidence</CardTitle>
+                      <CardTitle className="text-base">Waste Photos</CardTitle>
                       <p className="text-[11px] text-gray-400 mt-0.5">{permit.wasteEvidences.length} photo{permit.wasteEvidences.length > 1 ? 's' : ''} uploaded</p>
                     </div>
                   </div>
@@ -735,7 +737,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                 <div className="text-center space-y-1">
                   <p className="text-[10px] text-gray-400 font-mono">{permit.token}</p>
                   <p className="text-sm font-bold text-gray-900 border-t pt-2 mt-2">
-                    Valid Until: {permit.validUntil ? new Date(permit.validUntil).toLocaleString() : 'N/A'}
+                    Permit Expires At: {permit.validUntil ? new Date(permit.validUntil).toLocaleString() : 'N/A'}
                   </p>
                 </div>
               </CardContent>
@@ -861,7 +863,7 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Permit Expiry Time * *</label>
                 <input
                   type="datetime-local"
                   value={validUntil}
