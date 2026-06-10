@@ -5,7 +5,7 @@ import { normalizeDateTime } from '@/lib/utils';
 // regex patterns
 const indianMobileRegex = /^[6-9]\d{9}$/;
 
-const indianMobileMessage = "Enter valid 10-digit mobile number (starts with 6-9)";
+const indianMobileMessage = "Enter a valid mobile number (10 digits)";
 
 
 
@@ -87,7 +87,7 @@ export const createCompanySchema = z.object({
     address: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional(),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code').optional(),
     contactEmail: z.email().optional(),
     contactPhone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
 });
@@ -104,7 +104,7 @@ export const createProjectSchema = z.object({
     address: z.string().min(5, 'Address is required'),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
     companyId: z.string().uuid('Invalid company ID').optional()
@@ -122,7 +122,7 @@ export const createPlantSchema = z.object({
     address: z.string().min(5, 'Address is required'),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
     contactEmail: z.string().optional(),
@@ -166,12 +166,12 @@ export const createPermitSchema = z.object({
 
     projectId: z.string().uuid().optional(),
     companyId: z.string().uuid().optional(),
-    plantId: z.string().uuid(),
+    plantId: z.string().uuid("Please select a destination plant"),
 
     pickupAddress: z.string().min(5, "Pickup address is required"),
     pickupCity: z.string().min(2, "Pickup city is required"),
     pickupState: z.string().min(2, "Pickup state is required"),
-    pickupPincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+    pickupPincode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
     pickupLatitude: z.number().min(-90).max(90).optional(),
     pickupLongitude: z.number().min(-180).max(180).optional(),
 

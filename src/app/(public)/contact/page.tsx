@@ -72,8 +72,8 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-gray-900">Helpline</h3>
-                                <p className="text-gray-600">+91 1800-123-4567 (Toll Free)</p>
-                                <p className="text-gray-600">011-2345-6789</p>
+                                <p className="text-gray-600">+91 9015339966</p>
+                                {/* <p className="text-gray-600">011-2345-6789</p> */}
                             </div>
                         </div>
                     </div>

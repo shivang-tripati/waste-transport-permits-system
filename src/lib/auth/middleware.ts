@@ -23,8 +23,7 @@ export type MiddlewareResult =
  * Authenticate request and extract user context
  */
 export async function authenticate(request: NextRequest): Promise<MiddlewareResult> {
-    console.log('[AUTH_DEBUG] authenticate() called');
-
+   
     // 1. try authorization header (react native)
     const authHeader = request.headers.get('Authorization');
     let token = extractBearerToken(authHeader);
@@ -47,10 +46,10 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
     }
 
     const decoded = verifyAccessToken(token);
-    console.log(`[AUTH_DEBUG] JWT verification ${decoded ? 'success' : 'failure'}`);
+    
 
     if (!decoded) {
-        console.log('[AUTH_DEBUG] Authentication failed because: invalid or expired token');
+        
         return {
             success: false,
             response: createErrorResponse(
@@ -59,17 +58,16 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         };
     }
 
-    console.log('[AUTH_DEBUG] Looking up user in database');
+    
     // Verify user still exists and is active
     const user = await prisma.user.findUnique({
         where: { id: decoded.data.userId },
         select: { id: true, role: true, companyId: true, isActive: true },
     });
 
-    console.log(`[AUTH_DEBUG] User found: {id:${user?.id ?? 'null'},role:${user?.role ?? 'null'},isActive:${user?.isActive ?? 'null'}}`);
-
+    
     if (!user || !user.isActive) {
-        console.log('[AUTH_DEBUG] Authentication failed because: user missing or inactive');
+        
         return {
             success: false,
             response: createErrorResponse(
@@ -78,7 +76,7 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         };
     }
 
-    console.log('[AUTH_DEBUG] Authentication successful');
+    
     return {
         success: true,
         user: {

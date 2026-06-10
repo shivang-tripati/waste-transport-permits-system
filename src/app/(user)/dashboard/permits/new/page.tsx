@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, Button, Input, FileUpload } from "@/components/ui";
 import { createPermitSchema, CreatePermitInput } from "@/schemas";
 import { useAuth } from "@/hooks";
+import { toast } from "sonner"
 import { get, post } from "@/lib/api/client";
 import { uploadEvidenceAsync } from "@/lib/utils";
 import { cn } from "@/lib/cn";
@@ -44,6 +45,7 @@ export default function NewPermitPage() {
   const [loading, setLoading] = useState(true);
   const [locLoading, setLocLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitMode, setSubmitMode] = useState<'draft' | 'submit'>('submit');
   const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([]);
 
   // We can infer default role behavior
@@ -54,10 +56,12 @@ export default function NewPermitPage() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, touchedFields, dirtyFields },
+    trigger,
   } = useForm<CreatePermitInput>({
     resolver: zodResolver(createPermitSchema),
     shouldFocusError: true,
+    mode: "onChange",
     defaultValues: {
       wasteType: "CND_SEGREGATED",
     },
@@ -188,10 +192,14 @@ export default function NewPermitPage() {
     );
   };
 
+  // Add real-time validation for specific fields
+  const onFieldChange = (field: keyof CreatePermitInput) => {
+    trigger(field);
+  };
+
   const onSubmit: SubmitHandler<CreatePermitInput> = async (data) => {
     console.log("Submitting data:", data);
     setError(null);
-    const token = localStorage.getItem("accessToken");
 
     if (!isCompanyUser && data.projectId) {
       data.projectId = undefined;
@@ -199,7 +207,11 @@ export default function NewPermitPage() {
 
     try {
       // 1️⃣ Create Permit (ONLY this controls isSubmitting)
-      const result = await post<{ id: string }>("/permits", {
+      const endpoint = submitMode === 'submit'
+        ? "/permits?mode=submit"
+        : "/permits?mode=draft";
+
+      const result = await post<{ id: string }>(endpoint, {
         ...data,
         validFrom: data.validFrom ? new Date(data.validFrom) : undefined,
         validUntil: data.validUntil ? new Date(data.validUntil) : undefined,
@@ -235,7 +247,7 @@ export default function NewPermitPage() {
         <p className="text-gray-500">
           {isCompanyUser
             ? "Select a project and verify details."
-            : "Enter waste pickup details."}
+            : "Enter C & D waste pickup details."}
         </p>
       </div>
 
@@ -247,19 +259,13 @@ export default function NewPermitPage() {
                 {error}
               </div>
             )
-            
-            }
-            {Object.keys(errors).length > 0 && (
 
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                Please fix the highlighted fields before submitting.
-              </div>
-            )}
+            }
 
             {/* SECTION 1: ORIGIN (Project/Location) */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                Pickup Details
+                Provide the location where the waste will be collected.
               </h3>
 
               <input type="hidden" {...register("pickupLatitude", { valueAsNumber: true })} />
@@ -273,7 +279,7 @@ export default function NewPermitPage() {
                   </label>
                   <select
                     {...register("projectId")}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">-- Select Project --</option>
                     {projects.map((p) => (
@@ -305,6 +311,7 @@ export default function NewPermitPage() {
                   {...register("pickupAddress")}
                   error={errors.pickupAddress?.message}
                   readOnly={isCompanyUser && !!selectedProjectId}
+                  onChange={() => onFieldChange("pickupAddress")}
                 />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
@@ -312,17 +319,20 @@ export default function NewPermitPage() {
                     {...register("pickupCity")}
                     error={errors.pickupCity?.message}
                     readOnly={isCompanyUser && !!selectedProjectId}
+                    onChange={() => onFieldChange("pickupCity")}
                   />
                   <Input
                     label="State *"
                     {...register("pickupState")}
                     error={errors.pickupState?.message}
                     readOnly={isCompanyUser && !!selectedProjectId}
+                    onChange={() => onFieldChange("pickupState")}
                   />
                   <Input
                     label="Pincode *"
                     {...register("pickupPincode")}
                     error={errors.pickupPincode?.message}
+                    onChange={() => onFieldChange("pickupPincode")}
                     readOnly={isCompanyUser && !!selectedProjectId}
                   />
                 </div>
@@ -332,7 +342,7 @@ export default function NewPermitPage() {
             {/* SECTION 2: DESTINATION (Plant) */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                Destination Plant
+                Select the processing plant where the waste will be transported.
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -341,7 +351,7 @@ export default function NewPermitPage() {
                   </label>
                   <select
                     {...register("plantId")}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">-- Select Plant --</option>
                     {plants.map((p) => (
@@ -362,7 +372,7 @@ export default function NewPermitPage() {
             {/* SECTION 3: WASTE DETAILS */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                Waste Information
+                Describe the type and quantity of waste being moved.
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -371,14 +381,15 @@ export default function NewPermitPage() {
                   </label>
                   <select
                     {...register("wasteType")}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="CND_SEGREGATED">C&D Segregated</option>
-                    <option value="CND_UNSEGREGATED">C&D Unsegregated</option>
+                    <option value="CND_SEGREGATED">C & D Segregated (sorted by material type) </option>
+                    <option value="CND_UNSEGREGATED">C & D Unsegregated (mixed construction waste)</option>
                   </select>
                 </div>
                 <Input
-                  label="Estimated Weight (kg)"
+                  label="Estimated Waste Weight (kg)"
+                  helperText="Approximate weight of C & D waste being transported."
                   type="number"
                   {...register("estimatedWeight", { valueAsNumber: true })}
                   error={errors.estimatedWeight?.message}
@@ -387,7 +398,7 @@ export default function NewPermitPage() {
               <Input
                 label="Description"
                 {...register("wasteDescription")}
-                helperText="Briefly describe contents"
+                helperText="Example: Concrete debris, bricks, tiles, soil, mixed C & D waste."
               />
 
               <div className="space-y-2">
@@ -444,14 +455,15 @@ export default function NewPermitPage() {
             {/* SECTION 4: DRIVER & VALIDITY */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
-                Transport Details
+                Enter driver, vehicle, and permit validity information.
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <Input label="Driver Name" {...register("driverName")} />
-                <Input label="Driver Phone" {...register("driverPhone")} />
-                <Input label="Driver's License" {...register("licenseNumber")} placeholder="HR1420230000001" />
-                <Input label="Vehicle Number" {...register("vehicleNumber")} placeholder="HR51AB1234" />
+                <Input label="Driver WhatsApp Number" required {...register("driverPhone")} />
+                <Input label="Driver's License Number" required placeholder="DL0420110012345" {...register("licenseNumber")} />
+                <Input label="Vehicle Registration Number" required helperText="Enter vehicle registration number as shown on the RC." placeholder="HR51AB1234" {...register("vehicleNumber")} />
                 <Input
+                  required
                   label="Vehicle Type"
                   {...register("vehicleType")}
                   placeholder="e.g. Truck, Dumper"
@@ -509,11 +521,30 @@ export default function NewPermitPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => router.back()}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit" isLoading={isSubmitting}>
-                Create Permit
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setSubmitMode('draft');
+                  handleSubmit(onSubmit)();
+                }}
+                isLoading={isSubmitting && submitMode === 'draft'}
+              >
+                Save as Draft
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setSubmitMode('submit');
+                  handleSubmit(onSubmit)();
+                }}
+                isLoading={isSubmitting && submitMode === 'submit'}
+              >
+                Submit for Review
               </Button>
             </div>
           </form>

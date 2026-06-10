@@ -109,6 +109,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+    const url = new URL(request.url);
+    const mode = url.searchParams.get('mode');
     try {
         // Authenticate
         const authResult = await authenticate(request);
@@ -193,7 +195,7 @@ export async function POST(request: NextRequest) {
                 validUntil: data.validUntil,
 
                 userId: user.userId,
-                status: 'DRAFT',
+                status: mode === 'draft' ? 'DRAFT' : 'SUBMITTED',
             },
             include: {
                 project: { select: { id: true, name: true } },

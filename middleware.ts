@@ -50,16 +50,6 @@ async function validateSession(request: NextRequest, token: string) {
     );
     const headers = new Headers();
 
-    console.log(
-        '[AUTH_DEBUG] Request URL:',
-        request.url
-    );
-
-    console.log(
-        '[AUTH_DEBUG] Validate URL:',
-        url.toString()
-    );
-
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
     }
@@ -70,10 +60,7 @@ async function validateSession(request: NextRequest, token: string) {
     }
 
     try {
-        console.log(
-            '[AUTH_DEBUG] Validate URL:',
-            url.toString()
-        );
+
         return await fetch(url.toString(), {
             method: 'GET',
             headers,
@@ -90,10 +77,9 @@ async function validateSession(request: NextRequest, token: string) {
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    console.log(`[AUTH_DEBUG] Middleware pathname: ${pathname}`);
     const cookieHeader = request.headers.get('cookie') ?? '';
     const cookieNames = cookieHeader.split(';').map((entry) => entry.split('=')[0]?.trim()).filter(Boolean);
-    console.log(`[AUTH_DEBUG] Cookies received: ${cookieNames.join(', ') || '(none)'}`);
+
 
     // Skip middleware for public routes (exact match) and public prefixes
     if (
@@ -115,9 +101,6 @@ export async function middleware(request: NextRequest) {
         token = request.cookies.get('accessToken')?.value ?? null;
     }
 
-    console.log(`[AUTH_DEBUG] accessToken cookie ${request.cookies.get('accessToken') ? 'FOUND' : 'MISSING'}`);
-    console.log(`[AUTH_DEBUG] Token extracted: ${token ? 'YES' : 'NO'}`);
-
     if (!token) {
         const url = new URL('/unauthorized', request.url);
         url.searchParams.set('redirect', pathname);
@@ -125,7 +108,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const decoded = await verifyAccessTokenEdge(token);
-    console.log(`[AUTH_DEBUG] Token verification result: ${decoded ? 'SUCCESS' : 'FAILED'}`);
+
 
     if (!decoded) {
         const url = new URL('/unauthorized', request.url);
@@ -133,9 +116,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url);
     }
 
-    console.log('[AUTH_DEBUG] Calling validate endpoint');
     const validationResponse = await validateSession(request, token);
-    console.log(`[AUTH_DEBUG] Validate status: ${validationResponse?.status ?? 'ERROR'}`);
+
     if (!validationResponse || validationResponse.status !== 200) {
         const url = new URL('/unauthorized', request.url);
         url.searchParams.set('redirect', pathname);
@@ -143,7 +125,6 @@ export async function middleware(request: NextRequest) {
     }
 
     const payload = await validationResponse.json();
-    console.log(`[AUTH_DEBUG] Validate payload: ${JSON.stringify(payload)}`);
     const user = payload?.data?.user ?? payload?.user;
 
     if (!user) {
