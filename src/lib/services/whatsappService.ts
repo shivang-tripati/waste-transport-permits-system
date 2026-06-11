@@ -2,7 +2,7 @@
  * WhatsApp Service
  * Handles direct communication with Meta WhatsApp Cloud API
  */
-
+import { log } from '@/lib/logger';
 const META_WHATSAPP_TOKEN = process.env.META_WHATSAPP_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_PHONE_NUMBER_ID;
 const API_VERSION = 'v17.0';
@@ -56,13 +56,13 @@ export async function sendWhatsAppTemplate({
         const result = await response.json();
 
         if (!response.ok) {
-            console.error('Meta API Error:', result);
+            log.error('Meta API Error:', result);
             throw new Error(result.error?.message || 'Meta API request failed');
         }
 
         return result;
     } catch (error) {
-        console.error('WhatsApp service error:', error);
+        log.error('WhatsApp service error:', error);
         throw error;
     }
 }

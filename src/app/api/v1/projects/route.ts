@@ -9,6 +9,7 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createProjectSchema } from '@/schemas';
 import { Prisma } from '@prisma/client';
@@ -76,11 +77,11 @@ export async function GET(request: NextRequest) {
             prisma.project.count({ where }),
         ]);
 
-        console.log("projects", projects);
+        log.info("projects", projects);
 
         return createSuccessResponse(projects, createPaginationMeta(page, limit, total));
     } catch (error) {
-        console.error('List projects error:', error);
+        log.error('List projects error:', error);
         return createErrorResponse(error);
     }
 }
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(project, undefined, 201);
     } catch (error) {
-        console.error('Create project error:', error);
+        log.error('Create project error:', error);
         return createErrorResponse(error);
     }
 }

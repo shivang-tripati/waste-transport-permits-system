@@ -5,6 +5,7 @@ import { getStorageProvider } from '@/lib/storage';
 import { createErrorResponse, createSuccessResponse, CommonErrors } from '@/lib/api';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import  {log} from '@/lib/logger';
 
 const folderMap: Record<string, string> = {
     waste_evidence: 'public/evidence',
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Upload error:', error);
+        log.error('Upload error:', error);
         return createErrorResponse(error);
     }
 }

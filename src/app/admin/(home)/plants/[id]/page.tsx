@@ -28,7 +28,6 @@ export default function EditPlantPage({ params }: { params: Promise<{ id: string
       router.push('/admin/plants');
       router.refresh();
     } catch (error) {
-      console.error('Failed to delete plant', error);
       alert('Failed to delete plant');
       setIsDeleting(false);
     }

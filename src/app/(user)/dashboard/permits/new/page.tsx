@@ -67,7 +67,6 @@ export default function NewPermitPage() {
     },
   });
 
-  console.log("errors", errors);
 
   const selectedProjectId = watch("projectId");
 
@@ -92,11 +91,10 @@ export default function NewPermitPage() {
             "/projects",
             { limit: 10, isActive: true }
           );
-          console.log("projectsRes", projectsRes);
           if (projectsRes.success) setProjects(projectsRes.data || []);
         }
       } catch (err) {
-        console.error("Failed to load initial data", err);
+
       } finally {
         setLoading(false);
       }
@@ -172,7 +170,7 @@ export default function NewPermitPage() {
             { shouldValidate: true }
           );
         } catch (err) {
-          console.error(err);
+
           alert(
             "Location detected, but address could not be auto-filled. Please enter it manually."
           );
@@ -198,7 +196,6 @@ export default function NewPermitPage() {
   };
 
   const onSubmit: SubmitHandler<CreatePermitInput> = async (data) => {
-    console.log("Submitting data:", data);
     setError(null);
 
     if (!isCompanyUser && data.projectId) {

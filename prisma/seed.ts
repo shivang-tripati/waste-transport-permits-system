@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaClient, UserRole } from '@prisma/client';
 import { hashPassword } from '@/lib/auth/password';
 import prisma from '@/lib/db';
+import { log } from '@/lib/logger';
 
 
 async function main() {
@@ -20,7 +21,7 @@ async function main() {
     });
 
     if (existing) {
-        console.log('✅ System admin already exists');
+        log.info('✅ System admin already exists');
         return;
     }
 
@@ -39,14 +40,14 @@ async function main() {
         },
     });
 
-    console.log('user', user);
+    log.info('user', user);
 
-    console.log('✅ System admin created successfully');
+    log.info('✅ System admin created successfully');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Failed to create system admin:', e);
+        log.error('❌ Failed to create system admin:', e);
         process.exit(1);
     })
     .finally(() => prisma.$disconnect());

@@ -9,6 +9,7 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createCompanySchema } from '@/schemas';
 import { Prisma } from '@prisma/client';
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(companies, createPaginationMeta(page, limit, total));
     } catch (error) {
-        console.error('List companies error:', error);
+        log.error('List companies error:', error);
         return createErrorResponse(error);
     }
 }
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(company, undefined, 201);
     } catch (error) {
-        console.error('Create company error:', error);
+        log.error('Create company error:', error);
         return createErrorResponse(error);
     }
 }

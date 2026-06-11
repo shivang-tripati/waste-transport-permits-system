@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
+import  {log} from '@/lib/logger';
 import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
 
 /**
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(response);
     } catch (error) {
-        console.error('Verification error:', error);
+        log.error('Verification error:', error);
         return createErrorResponse(error);
     }
 }

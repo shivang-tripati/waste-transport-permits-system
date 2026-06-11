@@ -1,5 +1,5 @@
 import { post } from "./api/client";
-
+import {log} from '@/lib/logger';
 /**
  * Generate permit number with format: PT-YYYYMMDD-XXXXX
  */
@@ -149,7 +149,7 @@ export async function uploadEvidenceAsync(
             )
         );
     } catch (e) {
-        console.error("Evidence upload failed:", e);
+        log.error("Evidence upload failed:", e);
         throw new Error("Evidence upload failed");
     }
 }

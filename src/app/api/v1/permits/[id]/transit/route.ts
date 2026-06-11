@@ -7,7 +7,7 @@ import {
     CommonErrors,
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
-
+import {log} from '@/lib/logger';
 interface RouteParams {
     params: Promise<{ id: string }>;
 }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Start transit error:', error);
+        log.error('Start transit error:', error);
         return createErrorResponse(error);
     }
 }

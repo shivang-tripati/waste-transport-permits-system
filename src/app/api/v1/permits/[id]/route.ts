@@ -7,6 +7,7 @@ import {
     CommonErrors,
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
+import {log} from '@/lib/logger';
 import { updatePermitSchema } from '@/schemas';
 
 interface RouteParams {
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Get permit error:', error);
+        log.error('Get permit error:', error);
         return createErrorResponse(error);
     }
 }
@@ -173,7 +174,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Update permit error:', error);
+        log.error('Update permit error:', error);
         return createErrorResponse(error);
     }
 }
@@ -231,7 +232,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse({ message: 'Permit deleted successfully' });
     } catch (error) {
-        console.error('Delete permit error:', error);
+        log.error('Delete permit error:', error);
         return createErrorResponse(error);
     }
 }

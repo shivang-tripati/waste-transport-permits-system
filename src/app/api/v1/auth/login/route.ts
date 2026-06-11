@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import {log} from '@/lib/logger';
 import {
     verifyPassword,
     generateAccessToken,
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
         
         return response;
     } catch (error) {
-        console.error('Login error:', error);
+        log.error('Login error:', error);
         return createErrorResponse(error);
     }
 }

@@ -47,7 +47,6 @@ export function ImportTable({ filters }: { filters: any }) {
     // ✅ ALWAYS fallback to empty array
     const rows = data?.items ?? [];
 
-    console.log(rows);
 
     const columns: ColumnDef<ImportRow>[] = [
         {

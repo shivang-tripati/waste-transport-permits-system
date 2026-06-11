@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { approvePermitSchema } from '@/schemas';
 import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
@@ -89,22 +90,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             include: {
                 project: { select: { id: true, name: true } },
                 plant: { select: { id: true, name: true, code: true } },
-                user: { select: { id: true, name: true, phone: true } },
+                user: { select: { id: true, name: true, phone: true, email: true } },
                 approvedBy: { select: { id: true, name: true } },
             },
         });
 
-        // Trigger notification (Async)
+         // Trigger notification (fire-and-forget — do NOT await)
         if (permit.user?.phone) {
             sendTemplateNotification({
-                eventType: 'PERMIT_APPROVED',
-                userId: permit.userId,
-                phone: permit.user.phone,
-                permitId: permit.id,
+                eventType:   'PERMIT_APPROVED',
+                userId:      permit.userId,
+                phone:       permit.user.phone,
+                permitId:    permit.id,
+                driverPhone: permit.driverPhone ?? null,   // <-- added
+                userEmail:   permit.user.email ?? null,    // <-- added (email fallback)
                 data: {
                     permitNumber: permit.permitNumber,
-                    validUntil: permit.validUntil?.toLocaleDateString() || ''
-                }
+                    validUntil:   permit.validUntil?.toLocaleDateString('en-IN') ?? '',
+                },
             });
         }
 
@@ -122,7 +125,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Approve permit error:', error);
+        log.error('Approve permit error:', error);
         return createErrorResponse(error);
     }
 }

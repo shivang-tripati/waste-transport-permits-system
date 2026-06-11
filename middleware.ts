@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { extractBearerToken, verifyAccessTokenEdge } from '@/lib/auth/edge';
+import { log } from '@/lib/logger';
 
 const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -67,7 +68,7 @@ async function validateSession(request: NextRequest, token: string) {
             cache: 'no-store',
         });
     } catch (error) {
-        console.error(
+        log.error(
             '[AUTH_DEBUG] Validate fetch failed:',
             error
         );

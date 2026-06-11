@@ -4,6 +4,7 @@ import { verifyAccessToken, extractBearerToken, AccessTokenPayload } from './jwt
 import { hasPermission, Permission, UserContext } from './rbac';
 import { ApiError, createErrorResponse } from '@/lib/api/response';
 import { cookies } from 'next/headers';
+import {log} from '@/lib/logger';
 
 /**
  * Extended request with auth context
@@ -33,8 +34,8 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         token = request.cookies.get('accessToken')?.value ?? null;
     }
 
-    if (authHeader) console.log('[AUTH_DEBUG] Authorization header token found');
-    if (token) console.log('[AUTH_DEBUG] Cookie token found');
+    if (authHeader) log.info('[AUTH_DEBUG] Authorization header token found');
+    if (token) log.info('[AUTH_DEBUG] Cookie token found');
 
     if (!token) {
         return {

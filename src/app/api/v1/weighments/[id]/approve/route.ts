@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
+import {log} from '@/lib/logger';
 import { authenticate, hasPermission } from '@/lib/auth';
 import {
     createSuccessResponse,
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 data: { fileUrl },
             });
         } catch (pdfError) {
-            console.error('PDF generation error:', pdfError);
+            log.error('PDF generation error:', pdfError);
             // Continue even if PDF generation fails - it can be generated later
         }
 
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             fileUrl,
         });
     } catch (error) {
-        console.error('Approve weighment error:', error);
+        log.error('Approve weighment error:', error);
         return createErrorResponse(error);
     }
 }

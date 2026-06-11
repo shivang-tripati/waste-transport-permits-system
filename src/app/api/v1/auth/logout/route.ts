@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyRefreshToken } from '@/lib/auth';
 import { createSuccessResponse } from '@/lib/api';
+import {log} from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
         return response;
 
     } catch (error) {
-        console.error("Logout error:", error);
+        log.error("Logout error:", error);
 
         const response = createSuccessResponse({
             message: "Logged out",

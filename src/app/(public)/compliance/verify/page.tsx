@@ -98,7 +98,6 @@ function VerificationContent() {
         const result = await get<VerificationData>('/verify', { token: tokenParam });
         if (result.success && result.data) {
           setData(result.data);
-          console.log(result.data);
           setError(null);
         } else {
           setData(null);

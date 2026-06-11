@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateWeighmentSchema, approveWeighmentSchema, markWeighmentPaidSchema } from '@/schemas';
 import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(weighment);
     } catch (error) {
-        console.error('Get weighment error:', error);
+        log.error('Get weighment error:', error);
         return createErrorResponse(error);
     }
 }
@@ -156,38 +157,38 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             },
         });
 
-        // Trigger notification (Async) - for netWeight or Document upload
-        if (weighment.permit?.user?.phone) {
-            // Document upload (we handle fileUrl if it's in the data, even if not in schema yet)
-            const fileUrl = (data as any).fileUrl;
-            if (fileUrl && fileUrl !== existing.fileUrl) {
-                sendTemplateNotification({
-                    eventType: 'WEIGHMENT_DOCUMENT',
-                    userId: weighment.permit.userId,
-                    phone: weighment.permit.user.phone,
-                    permitId: weighment.permitId,
-                    data: {
-                        weighmentNumber: weighment.weighmentNumber,
-                        docUrl: `${process.env.NEXT_PUBLIC_APP_URL}/uploads/${fileUrl}`
-                    }
-                });
-            }
+        // // Trigger notification (Async) - for netWeight or Document upload
+        // if (weighment.permit?.user?.phone) {
+        //     // Document upload (we handle fileUrl if it's in the data, even if not in schema yet)
+        //     const fileUrl = (data as any).fileUrl;
+        //     if (fileUrl && fileUrl !== existing.fileUrl) {
+        //         sendTemplateNotification({
+        //             eventType: 'WEIGHMENT_DOCUMENT',
+        //             userId: weighment.permit.userId,
+        //             phone: weighment.permit.user.phone,
+        //             permitId: weighment.permitId,
+        //             data: {
+        //                 weighmentNumber: weighment.weighmentNumber,
+        //                 docUrl: `${process.env.NEXT_PUBLIC_APP_URL}/uploads/${fileUrl}`
+        //             }
+        //         });
+        //     }
 
-            // Net weight completed
-            if (weighment.netWeight !== null && existing.netWeight === null) {
-                sendTemplateNotification({
-                    eventType: 'WEIGHMENT_RECORDED',
-                    userId: weighment.permit.userId,
-                    phone: weighment.permit.user.phone,
-                    permitId: weighment.permitId,
-                    data: {
-                        permitNumber: weighment.permit.permitNumber,
-                        netWeight: `${weighment.netWeight} kg`,
-                        plantName: weighment.plant.name
-                    }
-                });
-            }
-        }
+        //     // Net weight completed
+        //     if (weighment.netWeight !== null && existing.netWeight === null) {
+        //         sendTemplateNotification({
+        //             eventType: 'WEIGHMENT_RECORDED',
+        //             userId: weighment.permit.userId,
+        //             phone: weighment.permit.user.phone,
+        //             permitId: weighment.permitId,
+        //             data: {
+        //                 permitNumber: weighment.permit.permitNumber,
+        //                 netWeight: `${weighment.netWeight} kg`,
+        //                 plantName: weighment.plant.name
+        //             }
+        //         });
+        //     }
+        // }
 
         // Create audit log
         await createAuditLog({
@@ -207,7 +208,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(weighment);
     } catch (error) {
-        console.error('Update weighment error:', error);
+        log.error('Update weighment error:', error);
         return createErrorResponse(error);
     }
 }

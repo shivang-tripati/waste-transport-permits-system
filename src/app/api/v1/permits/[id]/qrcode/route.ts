@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { authenticate, hasPermission } from '@/lib/auth';
 import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
 import * as QRCode from 'qrcode';
-
+import {log} from '@/lib/logger';
 interface RouteParams {
     params: Promise<{ id: string }>;
 }
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             qrCode: qrCodeDataUrl,
         });
     } catch (error) {
-        console.error('Generate QR code error:', error);
+        log.error('Generate QR code error:', error);
         return createErrorResponse(error);
     }
 }

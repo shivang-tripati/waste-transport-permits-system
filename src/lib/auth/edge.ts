@@ -1,4 +1,5 @@
 import { AccessTokenPayload, DecodedToken } from './jwt';
+import {log} from '@/lib/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-minimum-32-characters-long!!!';
 
@@ -64,7 +65,7 @@ export async function verifyAccessTokenEdge(
         const decoded = JSON.parse(payloadJson) as DecodedToken<AccessTokenPayload>;
         return decoded;
     } catch (error) {
-        console.log(`[AUTH_DEBUG] JWT verification failed reason: ${error instanceof Error ? error.message : String(error)}`);
+        log.info(`[AUTH_DEBUG] JWT verification failed reason: ${error instanceof Error ? error.message : String(error)}`);
         return null;
     }
 }

@@ -238,8 +238,6 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
   const canComplete = permit?.status === 'IN_TRANSIT' && permit?.weighments?.length > 0;
   const isPendingReview = canApprove || canReject;
 
-  console.log('permit', permit);
-
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
       {/* ─── Sticky Header / Action Bar ─── */}

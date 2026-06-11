@@ -6,6 +6,7 @@ import {
     generateRefreshToken,
     getRefreshTokenExpiry,
 } from '@/lib/auth';
+import {log} from '@/lib/logger';
 import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { registerSchema } from '@/schemas';
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
 
         return response;
     } catch (error) {
-        console.error('Registration error:', error);
+        log.error('Registration error:', error);
         return createErrorResponse(error);
     }
 }

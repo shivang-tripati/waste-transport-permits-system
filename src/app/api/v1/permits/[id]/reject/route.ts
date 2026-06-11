@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { rejectPermitSchema } from '@/schemas';
 import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             include: {
                 project: { select: { id: true, name: true } },
                 plant: { select: { id: true, name: true, code: true } },
-                user: { select: { id: true, name: true, phone: true } },
+                user: { select: { id: true, name: true, phone: true, email: true } },
                 rejectedBy: { select: { id: true, name: true } },
             },
         });
@@ -82,14 +83,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Trigger notification (Async)
         if (permit.user?.phone) {
             sendTemplateNotification({
-                eventType: 'PERMIT_REJECTED',
-                userId: permit.userId,
-                phone: permit.user.phone,
-                permitId: permit.id,
+                eventType:   'PERMIT_REJECTED',
+                userId:      permit.userId,
+                phone:       permit.user.phone,
+                permitId:    permit.id,
+                driverPhone: permit.driverPhone ?? null,   // <-- added
+                userEmail:   permit.user.email ?? null,    // <-- added (email fallback)
                 data: {
                     permitNumber: permit.permitNumber,
-                    reason: permit.rejectionReason || 'No reason provided'
-                }
+                    reason:       permit.rejectionReason ?? 'No reason provided',
+                },
             });
         }
 
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Reject permit error:', error);
+        log.error('Reject permit error:', error);
         return createErrorResponse(error);
     }
 }

@@ -67,6 +67,7 @@ enum NotificationStatus {
   PENDING
   SENT
   FAILED
+  DEAD_LETTER 
 }
 
 enum NotificationPriority {
@@ -258,6 +259,8 @@ model Permit {
   pickupCity        String
   pickupState       String
   pickupPincode     String
+  pickupLatitude    Float? 
+  pickupLongitude   Float?
   
   // Destination details (to Plant)
   plantId           String
@@ -499,6 +502,9 @@ model Notification {
   sentAt            DateTime?
   deliveredAt       DateTime?
   failureReason     String?
+
+  retryCount        Int                @default(0)    // Track number of retry attempts
+  nextRetryAt       DateTime?                          // When to retry next
   
   // Timestamps
   createdAt         DateTime           @default(now())
@@ -507,6 +513,7 @@ model Notification {
   @@index([permitId])
   @@index([expiresAt, priority])
   @@index([status])
+   @@index([status, nextRetryAt])  
 }
 
 // ============================================================

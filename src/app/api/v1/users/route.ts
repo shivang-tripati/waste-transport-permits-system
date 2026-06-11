@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate, isAdmin } from '@/lib/auth';
+import {log} from '@/lib/logger';
 import {
     createSuccessResponse,
     createErrorResponse,
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(users, createPaginationMeta(page, limit, total));
     } catch (error) {
-        console.error('List users error:', error);
+        log.error('List users error:', error);
         return createErrorResponse(error);
     }
 }

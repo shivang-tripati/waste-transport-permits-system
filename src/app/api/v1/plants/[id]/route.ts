@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updatePlantSchema } from '@/schemas';
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(plant);
     } catch (error) {
-        console.error('Get plant error:', error);
+        log.error('Get plant error:', error);
         return createErrorResponse(error);
     }
 }
@@ -101,7 +102,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(plant);
     } catch (error) {
-        console.error('Update plant error:', error);
+        log.error('Update plant error:', error);
         return createErrorResponse(error);
     }
 }
@@ -154,7 +155,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse({ message: 'Plant deactivated successfully' });
     } catch (error) {
-        console.error('Delete plant error:', error);
+        log.error('Delete plant error:', error);
         return createErrorResponse(error);
     }
 }

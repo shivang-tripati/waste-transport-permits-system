@@ -1,6 +1,7 @@
 
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
+import {log} from '@/lib/logger';
 import { authenticate } from '@/lib/auth';
 import {
     createSuccessResponse,
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(document);
     } catch (error) {
-        console.error('Update identity info error:', error);
+        log.error('Update identity info error:', error);
         return createErrorResponse(error);
     }
 }

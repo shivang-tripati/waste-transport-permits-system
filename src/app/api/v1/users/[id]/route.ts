@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate, isAdmin } from '@/lib/auth';
+import {log} from '@/lib/logger';
 import {
     createSuccessResponse,
     createErrorResponse,
@@ -68,7 +69,7 @@ export async function GET(
             recentPermits
         });
     } catch (error) {
-        console.error('Fetch user detail error:', error);
+        log.error('Fetch user detail error:', error);
         return createErrorResponse(error);
     }
 }
@@ -133,7 +134,7 @@ export async function PATCH(
 
         return createSuccessResponse(updatedUser);
     } catch (error) {
-        console.error('Update user status error:', error);
+        log.error('Update user status error:', error);
         return createErrorResponse(error);
     }
 }

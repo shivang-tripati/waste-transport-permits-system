@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
             }))
         });
     } catch (error) {
-        console.error('Dashboard stats error:', error);
+        log.error('Dashboard stats error:', error);
         return createErrorResponse(error);
     }
 }

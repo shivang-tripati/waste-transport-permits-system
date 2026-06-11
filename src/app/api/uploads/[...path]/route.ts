@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate } from '@/lib/auth';
+import {log} from '@/lib/logger';
 
 export async function GET(
     request: NextRequest,
@@ -15,40 +16,40 @@ export async function GET(
         const filePath = path.join(uploadDir, ...pathSegments);
         
         // DEBUG: Log the paths
-        console.log('[UPLOAD_DEBUG] STORAGE_LOCAL_PATH:', process.env.STORAGE_LOCAL_PATH);
-        console.log('[UPLOAD_DEBUG] uploadDir:', uploadDir);
-        console.log('[UPLOAD_DEBUG] pathSegments:', pathSegments);
-        console.log('[UPLOAD_DEBUG] full filePath:', filePath);
+        log.info('[UPLOAD_DEBUG] STORAGE_LOCAL_PATH:', process.env.STORAGE_LOCAL_PATH);
+        log.info('[UPLOAD_DEBUG] uploadDir:', uploadDir);
+        log.info('[UPLOAD_DEBUG] pathSegments:', pathSegments);
+        log.info('[UPLOAD_DEBUG] full filePath:', filePath);
         
         // Check if this is a private file
         const isPrivate = pathSegments[0] === 'private';
         
         // For private files, require authentication
         if (isPrivate) {
-            console.log('[UPLOAD_DEBUG] Private file, checking auth');
+            log.info('[UPLOAD_DEBUG] Private file, checking auth');
             const authResult = await authenticate(request);
             if (!authResult.success) {
-                console.log('[UPLOAD_DEBUG] Auth failed');
+                log.info('[UPLOAD_DEBUG] Auth failed');
                 return new NextResponse("Unauthorized", { status: 401 });
             }
-            console.log('[UPLOAD_DEBUG] Auth success');
+            log.info('[UPLOAD_DEBUG] Auth success');
         }
         
         // Check if file exists
         try {
             await fs.access(filePath);
-            console.log('[UPLOAD_DEBUG] File exists!');
+            log.info('[UPLOAD_DEBUG] File exists!');
         } catch (error) {
-            console.error('[UPLOAD_DEBUG] File NOT found at:', filePath);
-            console.error('[UPLOAD_DEBUG] Error:', error);
+            log.error('[UPLOAD_DEBUG] File NOT found at:', filePath);
+            log.error('[UPLOAD_DEBUG] Error:', error);
             
             // Try to list the directory to see what's there
             const dir = path.dirname(filePath);
             try {
                 const files = await fs.readdir(dir);
-                console.log('[UPLOAD_DEBUG] Files in directory:', files);
+                log.info('[UPLOAD_DEBUG] Files in directory:', files);
             } catch (dirError) {
-                console.error('[UPLOAD_DEBUG] Cannot read directory:', dir);
+                log.error('[UPLOAD_DEBUG] Cannot read directory:', dir);
             }
             
             return new NextResponse("Not Found", { status: 404 });
@@ -72,7 +73,7 @@ export async function GET(
             ? 'private, max-age=3600'
             : 'public, max-age=3153600, immutable';
         
-        console.log('[UPLOAD_DEBUG] Serving file, size:', file.length);
+        log.info('[UPLOAD_DEBUG] Serving file, size:', file.length);
         
         return new NextResponse(file, {
             headers: {
@@ -81,7 +82,7 @@ export async function GET(
             },
         });
     } catch (error) {
-        console.error('[UPLOAD_DEBUG] Error:', error);
+        log.error('[UPLOAD_DEBUG] Error:', error);
         return new NextResponse("Internal Server Error", { status: 500 });
     }
 }
