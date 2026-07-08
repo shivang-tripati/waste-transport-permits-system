@@ -1,13 +1,18 @@
+// app/api/notifications/trigger/route.ts
+
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { authenticate } from '@/lib/auth';
+import {log} from '@/lib/logger';
 import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
-import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
-import { BusinessEvent } from '@/lib/notifications/templateRegistry';
+import {
+    sendTemplateNotification,
+    type EventType,        // ← BusinessEvent alias, exported from the orchestrator
+} from '@/lib/services/notificationOrchestrator';
 
 /**
  * POST /api/notifications/trigger
- * External entry point for triggering WhatsApp notifications
+ * Internal entry point for triggering notifications programmatically.
  */
 /**
  * @swagger
@@ -51,7 +56,6 @@ import { BusinessEvent } from '@/lib/notifications/templateRegistry';
  */
 export async function POST(request: NextRequest) {
     try {
-        // 1. Authenticate (System Admin or trusted app)
         const authResult = await authenticate(request);
         if (!authResult.success) {
             return authResult.response;
@@ -60,33 +64,49 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { eventType, userId, permitId, data } = body;
 
-        // 2. Validate input
         if (!eventType || !userId) {
-            return createErrorResponse(CommonErrors.badRequest('eventType and userId are required'));
+            return createErrorResponse(
+                CommonErrors.badRequest('eventType and userId are required')
+            );
         }
 
-        // 3. Fetch user phone number
+        // Fetch user phone (and email for fallback)
         const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { phone: true }
+            where:  { id: userId },
+            select: { phone: true, email: true },
         });
 
-        if (!user || !user.phone) {
-            return createErrorResponse(CommonErrors.notFound('User phone number not found'));
+        if (!user?.phone) {
+            return createErrorResponse(
+                CommonErrors.notFound('User or user phone number not found')
+            );
         }
 
-        // 4. Trigger notification (Async/Fire-and-forget)
+        // Fetch driver phone if a permitId was provided
+        let driverPhone: string | null = null;
+        if (permitId) {
+            const permit = await prisma.permit.findUnique({
+                where:  { id: permitId },
+                select: { driverPhone: true },
+            });
+            driverPhone = permit?.driverPhone ?? null;
+        }
+
+        // Fire-and-forget — do NOT await
         sendTemplateNotification({
-            eventType: eventType as BusinessEvent,
+            eventType:   eventType as EventType,
             userId,
-            phone: user.phone,
+            phone:       user.phone,
             permitId,
-            data
+            data,
+            driverPhone,
+            userEmail:   user.email ?? null,
         });
 
-        return createSuccessResponse({ message: 'Notification triggered successfully' });
+        return createSuccessResponse({ message: 'Notification triggered' });
+
     } catch (error) {
-        console.error('Trigger notification error:', error);
+        log.error('[POST /api/notifications/trigger]', error);
         return createErrorResponse(error);
     }
 }

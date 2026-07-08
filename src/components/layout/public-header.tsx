@@ -19,8 +19,8 @@ export function PublicHeader() {
             <Link href="/contact" className="text-blue-100 hover:text-white transition-colors">
               Contact
             </Link>
-            <Link href="/verify" className="text-blue-100 hover:text-white transition-colors">
-              Verify Permit
+            <Link href="/compliance/verify" className="text-blue-100 hover:text-white transition-colors">
+              Permit Verification
             </Link>
             <Link href="/login">
               <Button variant="outline" size="sm" className="border-white text-white hover:bg-white hover:text-blue-900">

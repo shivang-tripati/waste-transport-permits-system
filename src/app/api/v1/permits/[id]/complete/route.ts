@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 
 interface RouteParams {
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Complete permit error:', error);
+        log.error('Complete permit error:', error);
         return createErrorResponse(error);
     }
 }

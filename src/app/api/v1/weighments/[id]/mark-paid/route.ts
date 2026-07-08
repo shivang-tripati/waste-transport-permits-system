@@ -8,6 +8,7 @@ import {
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { markWeighmentPaidSchema } from '@/schemas';
+import  {log} from '@/lib/logger';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(weighment);
     } catch (error) {
-        console.error('Mark weighment paid error:', error);
+        log.error('Mark weighment paid error:', error);
         return createErrorResponse(error);
     }
 }

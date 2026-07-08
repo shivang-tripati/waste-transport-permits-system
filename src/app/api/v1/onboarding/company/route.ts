@@ -7,6 +7,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createCompanySchema } from '@/schemas';
 
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(result, undefined, 201);
     } catch (error) {
-        console.error('Onboarding company error:', error);
+        log.error('Onboarding company error:', error);
         return createErrorResponse(error);
     }
 }

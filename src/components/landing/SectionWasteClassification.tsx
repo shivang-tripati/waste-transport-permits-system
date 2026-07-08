@@ -1,5 +1,5 @@
-import plantImg4 from "@/../public/image/3.jpeg"
-import plantImg5 from "@/../public/image/4.jpeg"
+import plantImg4 from "@/../public/image/2.jpeg"
+import plantImg5 from "@/../public/image/6.jpeg"
 
 import Image from "next/image";
 

@@ -28,10 +28,10 @@ export default function SectionAccess() {
           </Link>
 
           <Link
-            href="/verify"
+            href="/compliance/verify"
             className="px-6 py-2 border border-gray-400 text-gray-900 hover:bg-gray-100"
           >
-            Verify Permit
+            Permit Verification
           </Link>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { log } from '@/lib/logger';
 
 // Configuration
 const OTP_LENGTH = parseInt(process.env.OTP_LENGTH || '6', 10);
@@ -37,7 +38,7 @@ export interface SMSGateway {
  */
 class MockSMSGateway implements SMSGateway {
     async sendOTP(phone: string, otp: string, purpose: OTPPurpose): Promise<boolean> {
-        console.log(`[MOCK SMS] Sending OTP ${otp} to ${phone} for ${purpose}`);
+        log.info(`[MOCK SMS] Sending OTP ${otp} to ${phone} for ${purpose}`);
         return true;
     }
 }
@@ -50,7 +51,7 @@ class TwilioSMSGateway implements SMSGateway {
         // TODO: Implement Twilio integration
         // const client = require('twilio')(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
         // await client.messages.create({ body: `Your OTP is ${otp}`, from: TWILIO_PHONE, to: phone });
-        console.log(`[TWILIO] Would send OTP ${otp} to ${phone} for ${purpose}`);
+        log.info(`[TWILIO] Would send OTP ${otp} to ${phone} for ${purpose}`);
         return true;
     }
 }
@@ -61,7 +62,7 @@ class TwilioSMSGateway implements SMSGateway {
 class MSG91SMSGateway implements SMSGateway {
     async sendOTP(phone: string, otp: string, purpose: OTPPurpose): Promise<boolean> {
         // TODO: Implement MSG91 integration
-        console.log(`[MSG91] Would send OTP ${otp} to ${phone} for ${purpose}`);
+        log.info(`[MSG91] Would send OTP ${otp} to ${phone} for ${purpose}`);
         return true;
     }
 }

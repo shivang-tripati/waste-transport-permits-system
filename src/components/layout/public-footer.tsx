@@ -17,7 +17,7 @@ export function PublicFooter() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/about" className="hover:text-white">About Us</Link></li>
               <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
-              <li><Link href="/verify" className="hover:text-white">Verify Permit</Link></li>
+              <li><Link href="/compliance/verify" className="hover:text-white">Permit Verification</Link></li>
             </ul>
           </div>
           <div>

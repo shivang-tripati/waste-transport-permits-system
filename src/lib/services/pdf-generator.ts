@@ -351,7 +351,9 @@ export async function generateWeighmentSlip(weighmentId: string): Promise<string
 
     // Save to storage
     const fileName = `weighments/${data.weighment.weighmentNumber}.pdf`;
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'weighments');
+    const uploadsDir = process.env.STORAGE_LOCAL_PATH 
+    ? path.join(process.env.STORAGE_LOCAL_PATH, 'public', 'weighments')
+    : path.join(process.cwd(), 'uploads', 'public', 'weighments');
 
     // Ensure directory exists
     if (!fs.existsSync(uploadsDir)) {
@@ -362,7 +364,7 @@ export async function generateWeighmentSlip(weighmentId: string): Promise<string
     fs.writeFileSync(filePath, pdfBuffer);
 
     // Return the public URL
-    const fileUrl = `/uploads/weighments/${data.weighment.weighmentNumber}.pdf`;
+    const fileUrl = `/uploads/public/weighments/${data.weighment.weighmentNumber}.pdf`
 
     return fileUrl;
 }

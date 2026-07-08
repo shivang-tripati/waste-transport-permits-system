@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { rejectWeighmentSchema } from '@/schemas';
 
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(weighment);
     } catch (error) {
-        console.error('Reject weighment error:', error);
+        log.error('Reject weighment error:', error);
         return createErrorResponse(error);
     }
 }

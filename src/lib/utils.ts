@@ -1,5 +1,5 @@
 import { post } from "./api/client";
-
+import {log} from '@/lib/logger';
 /**
  * Generate permit number with format: PT-YYYYMMDD-XXXXX
  */
@@ -112,6 +112,23 @@ export const normalizeDateTime = (val: unknown): Date | null => {
     return null;
 };
 
+export const formatForDatetimeLocal = (date: Date): string => {
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+  return localDate.toISOString().slice(0, 16);
+};
+
+export const toDateTimeLocalValue = (val?: string | null) => {
+  if (!val) return '';
+
+  const date = new Date(val);
+
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60000);
+
+  return localDate.toISOString().slice(0, 16);
+};
+
 
 
 export async function uploadEvidenceAsync(
@@ -132,7 +149,7 @@ export async function uploadEvidenceAsync(
             )
         );
     } catch (e) {
-        console.error("Evidence upload failed:", e);
+        log.error("Evidence upload failed:", e);
         throw new Error("Evidence upload failed");
     }
 }
@@ -140,4 +157,22 @@ export async function uploadEvidenceAsync(
 
 export const getEvidenceUrl = (path: string) => {
     return `${process.env.NEXT_PUBLIC_FILE_BASE_URL}/${path}`;
+};
+
+export const getPermitDuration = (
+  start?: string,
+  end?: string
+) => {
+  if (!start || !end) return "-";
+
+  const diff =
+    new Date(end).getTime() -
+    new Date(start).getTime();
+
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor(
+    (diff % (1000 * 60 * 60)) / (1000 * 60)
+  );
+
+  return `${hours}h ${minutes}m`;
 };

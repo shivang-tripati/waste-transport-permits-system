@@ -2,6 +2,13 @@ import { z } from 'zod';
 import { UserRole, WasteType, PermitStatus, WeighmentStatus, PaymentStatus } from '@prisma/client';
 import { normalizeDateTime } from '@/lib/utils';
 
+// regex patterns
+const indianMobileRegex = /^[6-9]\d{9}$/;
+
+const indianMobileMessage = "Enter a valid mobile number (10 digits)";
+
+
+
 // ============================================================
 // AUTH SCHEMAS
 // ============================================================
@@ -20,7 +27,7 @@ export const registerSchema = z.object({
         .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
         .regex(/[0-9]/, 'Password must contain at least one number'),
     name: z.string().min(2, 'Name must be at least 2 characters'),
-    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number').optional(),
+    phone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
     role: z.enum(UserRole).default('INDIVIDUAL').optional(),
     companyId: z.uuid().optional(),
 });
@@ -44,12 +51,12 @@ export const refreshTokenSchema = z.object({
 });
 
 export const sendOTPSchema = z.object({
-    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number'),
+    phone: z.string().regex(indianMobileRegex, indianMobileMessage),
     purpose: z.enum(['LOGIN', 'REGISTER', 'PERMIT_CREATE', 'PASSWORD_RESET']),
 });
 
 export const verifyOTPSchema = z.object({
-    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number'),
+    phone: z.string().regex(indianMobileRegex, indianMobileMessage),
     otp: z.string().length(6, 'OTP must be 6 digits'),
     purpose: z.enum(['LOGIN', 'REGISTER', 'PERMIT_CREATE', 'PASSWORD_RESET']),
 });
@@ -60,13 +67,13 @@ export const verifyOTPSchema = z.object({
 
 export const updateUserSchema = z.object({
     name: z.string().min(2).optional(),
-    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
+    phone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
     isActive: z.boolean().optional(),
 });
 
 export const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
-    phone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
+    phone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
 });
 
 // ============================================================
@@ -80,9 +87,9 @@ export const createCompanySchema = z.object({
     address: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional(),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code').optional(),
     contactEmail: z.email().optional(),
-    contactPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
+    contactPhone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
 });
 
 export const updateCompanySchema = createCompanySchema.partial();
@@ -97,7 +104,7 @@ export const createProjectSchema = z.object({
     address: z.string().min(5, 'Address is required'),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
     companyId: z.string().uuid('Invalid company ID').optional()
@@ -115,11 +122,11 @@ export const createPlantSchema = z.object({
     address: z.string().min(5, 'Address is required'),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
-    pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits'),
+    pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit PIN code'),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional(),
     contactEmail: z.string().optional(),
-    contactPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
+    contactPhone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
     operatingHours: z.string().optional(),
     capacity: z.number().int().positive().optional(),
 });
@@ -159,33 +166,27 @@ export const createPermitSchema = z.object({
 
     projectId: z.string().uuid().optional(),
     companyId: z.string().uuid().optional(),
-    plantId: z.string().uuid(),
+    plantId: z.string().uuid("Please select a destination plant"),
 
     pickupAddress: z.string().min(5, "Pickup address is required"),
     pickupCity: z.string().min(2, "Pickup city is required"),
     pickupState: z.string().min(2, "Pickup state is required"),
-    pickupPincode: z.string().regex(/^\d{6}$/, "Pincode must be 6 digits"),
+    pickupPincode: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
     pickupLatitude: z.number().min(-90).max(90).optional(),
     pickupLongitude: z.number().min(-180).max(180).optional(),
 
     driverName: z.string().optional(),
-    driverPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/).optional(),
+    driverPhone: z.string().regex(indianMobileRegex, indianMobileMessage).optional(),
     vehicleNumber: z.string().optional(),
     vehicleType: z.string().optional(),
     licenseNumber: z
-        .string()
-        .trim()
-        .toUpperCase()
-        .regex(
-            /^[A-Z]{2}\d{2}\d{4}\d{7}$/,
-            {
-                message:
-                    "License number should be like DL0420110012345",
-            }
-        )
-        .optional(),
-
-
+    .string()
+    .regex(
+        /^([A-Z]{2})(\d{2}|\d{3})[A-Z]{0,1}(\d{4})(\d{7})$/i,
+        "License must be like: DL0420110012345 (2 letters + 2-3 digits + optional letter + 4 digits year + 7 digits number)"
+    )
+    .optional()
+    .or(z.literal('')),
     validFrom: dateTimeField("Start date & time"),
     validUntil: dateTimeField("End date & time"),
 
@@ -195,15 +196,20 @@ export const updatePermitSchema = createPermitSchema.partial();
 
 export const submitPermitSchema = z.object({
     driverName: z.string().min(2, 'Driver name is required'),
-    driverPhone: z.string().regex(/^\+?[1-9]\d{9,14}$/, 'Valid driver phone is required'),
+    driverPhone: z.string().regex(indianMobileRegex, indianMobileMessage),
     vehicleNumber: z.string().min(4, 'Vehicle number is required'),
     vehicleType: z.string().optional(),
-    licenseNumber: z.string().regex(/^[A-Z]{2}[- ]?\d{2}[- ]?[A-Z]{1,3}[- ]?\d{4,7}$/, { message: "Invalid Indian driving license number format" }).optional(),
+    licenseNumber: z
+    .string()
+    .regex(
+        /^([A-Z]{2})(\d{2}|\d{3})[A-Z]{0,1}(\d{4})(\d{7})$/i,
+        "License must be like: DL0420110012345 (2 letters + 2-3 digits + optional letter + 4 digits year + 7 digits number)"
+    ).optional(),
 });
 
 export const approvePermitSchema = z.object({
     validFrom: dateTimeField("Valid from").refine(val => val !== null, "Valid from is required"),
-    validUntil: dateTimeField("Valid until").refine(val => val !== null, "Valid until is required"),
+    validUntil: dateTimeField("Permit expiry time").refine(val => val !== null, "Permit expiry time is required"),
 });
 
 export const rejectPermitSchema = z.object({

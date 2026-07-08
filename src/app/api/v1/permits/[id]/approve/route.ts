@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { approvePermitSchema } from '@/schemas';
 import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
@@ -108,14 +109,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Set default validity (24 hours from now if not specified)
         const validFrom = data.validFrom ? new Date(data.validFrom) : new Date();
         if (!data.validUntil) {
-            return createErrorResponse(CommonErrors.badRequest('Valid until is required'));
+            return createErrorResponse(CommonErrors.badRequest('Permit expiry time is required'));
         }
         const validUntil = new Date(data.validUntil);
 
         // Validate validity period
         if (validUntil <= validFrom) {
             return createErrorResponse(
-                CommonErrors.badRequest('Valid until must be after valid from')
+                CommonErrors.badRequest('Permit expiry time must be after permit start time')
             );
         }
 
@@ -133,22 +134,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             include: {
                 project: { select: { id: true, name: true } },
                 plant: { select: { id: true, name: true, code: true } },
-                user: { select: { id: true, name: true, phone: true } },
+                user: { select: { id: true, name: true, phone: true, email: true } },
                 approvedBy: { select: { id: true, name: true } },
             },
         });
 
-        // Trigger notification (Async)
+         // Trigger notification (fire-and-forget — do NOT await)
         if (permit.user?.phone) {
             sendTemplateNotification({
-                eventType: 'PERMIT_APPROVED',
-                userId: permit.userId,
-                phone: permit.user.phone,
-                permitId: permit.id,
+                eventType:   'PERMIT_APPROVED',
+                userId:      permit.userId,
+                phone:       permit.user.phone,
+                permitId:    permit.id,
+                driverPhone: permit.driverPhone ?? null,   // <-- added
+                userEmail:   permit.user.email ?? null,    // <-- added (email fallback)
                 data: {
                     permitNumber: permit.permitNumber,
-                    validUntil: permit.validUntil?.toLocaleDateString() || ''
-                }
+                    validUntil:   permit.validUntil?.toLocaleDateString('en-IN') ?? '',
+                },
             });
         }
 
@@ -166,7 +169,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Approve permit error:', error);
+        log.error('Approve permit error:', error);
         return createErrorResponse(error);
     }
 }

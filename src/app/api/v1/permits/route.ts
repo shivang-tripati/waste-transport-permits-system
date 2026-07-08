@@ -9,6 +9,7 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createPermitSchema } from '@/schemas';
 import { generatePermitNumber } from '@/lib/utils';
@@ -165,7 +166,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(permits, createPaginationMeta(page, limit, total));
     } catch (error) {
-        console.error('List permits error:', error);
+        log.error('List permits error:', error);
         return createErrorResponse(error);
     }
 }
@@ -265,6 +266,8 @@ export async function GET(request: NextRequest) {
  *         description: Project or plant not found
  */
 export async function POST(request: NextRequest) {
+    const url = new URL(request.url);
+    const mode = url.searchParams.get('mode');
     try {
         // Authenticate
         const authResult = await authenticate(request);
@@ -278,7 +281,7 @@ export async function POST(request: NextRequest) {
         // Validate input
         const validation = createPermitSchema.safeParse(body);
         if (!validation.success) {
-            console.error("ZOD ERROR:", validation.error.format());
+            log.error("ZOD ERROR:", validation.error.format());
             return createErrorResponse(
                 CommonErrors.validationError(validation.error.flatten().fieldErrors)
             );
@@ -349,7 +352,7 @@ export async function POST(request: NextRequest) {
                 validUntil: data.validUntil,
 
                 userId: user.userId,
-                status: 'DRAFT',
+                status: mode === 'draft' ? 'DRAFT' : 'SUBMITTED',
             },
             include: {
                 project: { select: { id: true, name: true } },
@@ -371,7 +374,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(permit, undefined, 201);
     } catch (error) {
-        console.error('Create permit error:', error);
+        log.error('Create permit error:', error);
         return createErrorResponse(error);
     }
 }

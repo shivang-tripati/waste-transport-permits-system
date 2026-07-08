@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
 import { forgotPasswordSchema } from '@/schemas';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '@/lib/logger';
 
 /**
  * @swagger
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         // In production, send email with reset link
         // For now, just log it
-        console.log(
+        log.info(
             `[DEV] Password reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`
         );
 
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
             message: 'If an account exists with this email, a password reset link has been sent',
         });
     } catch (error) {
-        console.error('Forgot password error:', error);
+        log.error('Forgot password error:', error);
         return createErrorResponse(error);
     }
 }

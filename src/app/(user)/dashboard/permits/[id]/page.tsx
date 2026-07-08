@@ -8,9 +8,9 @@ import Image from 'next/image';
 import { CarIcon, GlobeIcon, LocateFixed, LocateIcon } from 'lucide-react';
 import { toPng } from "html-to-image";
 import { useRef } from "react";
-import { getEvidenceUrl } from '@/lib/utils';
+import { getEvidenceUrl, getPermitDuration } from '@/lib/utils';
 
-import { PermitDetail} from '@/types';
+import { PermitDetail } from '@/types';
 
 interface QRCodeData {
   qrCode: string;
@@ -177,30 +177,70 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <div className='flex items-center gap-2'>
-                    <GlobeIcon className='text-primary' size={20} />
+                  <div className="flex items-center gap-2">
+                    <GlobeIcon className="text-primary" size={20} />
                     <CardTitle>Overview</CardTitle>
                   </div>
                   <StatusBadge status={permit.status} />
                 </div>
               </CardHeader>
+
               <CardContent className="grid md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-sm text-gray-500">Waste Type</p>
                   <StatusBadge status={permit.wasteType} />
                 </div>
+
                 <div>
                   <p className="text-sm text-gray-500">Requested Weight</p>
-                  <p className="font-medium">{permit.estimatedWeight ? `${permit.estimatedWeight} kg` : '-'}</p>
+                  <p className="font-medium">
+                    {permit.estimatedWeight ? `${permit.estimatedWeight} kg` : '-'}
+                  </p>
                 </div>
+
                 <div>
                   <p className="text-sm text-gray-500">Created At</p>
-                  <p className="font-medium">{new Date(permit.createdAt).toLocaleString()}</p>
+                  <p className="font-medium">
+                    {new Date(permit.createdAt).toLocaleString()}
+                  </p>
                 </div>
+
                 {permit.submittedAt && (
                   <div>
                     <p className="text-sm text-gray-500">Submitted At</p>
-                    <p className="font-medium">{new Date(permit.submittedAt).toLocaleString()}</p>
+                    <p className="font-medium">
+                      {new Date(permit.submittedAt).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {permit.validFrom && (
+                  <div>
+                    <p className="text-sm text-gray-500">Requested From</p>
+                    <p className="font-medium">
+                      {new Date(permit.validFrom).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {permit.validUntil && (
+                  <div>
+                    <p className="text-sm text-gray-500">Requested Until</p>
+                    <p className="font-medium">
+                      {new Date(permit.validUntil).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {permit.validFrom && permit.validUntil && (
+                  <div className="md:col-span-2 rounded-lg bg-blue-50 border border-blue-100 p-3">
+                    <p className="text-xs text-blue-600 font-medium uppercase tracking-wide">
+                      Requested Permit Duration
+                    </p>
+
+                    <p className="text-sm font-semibold text-blue-900 mt-1">
+                      {getPermitDuration(permit.validFrom, permit.validUntil)}
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -276,8 +316,8 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                     {permit.wasteEvidences.map((e) => (
                       <div key={e.id} className="relative group">
                         <div className="w-full max-w-sm">
-                          <Image
-                            src={`/uploads/${e.filePath}`}
+                          <img
+                            src={`/api/uploads/${e.filePath}`}
                             alt={e.fileName}
                             width={800} // Target "natural" resolution
                             height={450}
@@ -360,7 +400,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
             {/* Validity QR */}
             <div>
               {isApproved && qrData && (
-                console.log("VERIFICATION URL:",qrData.verificationUrl),
+                console.log("VERIFICATION URL:", qrData.verificationUrl),
                 <>
                   <div ref={permitRef}>
                     <Card className="border-blue-100 bg-blue-50/30">
@@ -369,7 +409,7 @@ export default function UserPermitDetailPage({ params }: { params: Promise<{ id:
                       </CardHeader>
                       <CardContent className="flex flex-col items-center gap-4">
                         <div className="bg-white p-4 rounded-xl shadow-sm">
-                          <Image
+                          <img
                             src={qrData.qrCode}
                             alt="Permit QR Code"
                             width={200}

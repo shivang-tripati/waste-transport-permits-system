@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateProjectSchema } from '@/schemas';
 
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(project);
     } catch (error) {
-        console.error('Get project error:', error);
+        log.error('Get project error:', error);
         return createErrorResponse(error);
     }
 }
@@ -198,7 +199,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(project);
     } catch (error) {
-        console.error('Update project error:', error);
+        log.error('Update project error:', error);
         return createErrorResponse(error);
     }
 }
@@ -276,7 +277,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse({ message: 'Project deactivated successfully' });
     } catch (error) {
-        console.error('Delete project error:', error);
+        log.error('Delete project error:', error);
         return createErrorResponse(error);
     }
 }

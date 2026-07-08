@@ -1,4 +1,5 @@
 import { AccessTokenPayload, DecodedToken } from './jwt';
+import {log} from '@/lib/logger';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-jwt-secret-key-minimum-32-characters-long!!!';
 
@@ -45,9 +46,8 @@ export function extractBearerToken(authHeader: string | null): string | null {
 export async function verifyAccessTokenEdge(
     token: string
 ): Promise<DecodedToken<AccessTokenPayload> | null> {
-    console.log('[AUTH_DEBUG] Edge verify started');
+    
     const parts = token.split('.');
-    console.log(`[AUTH_DEBUG] JWT parts count: ${parts.length}`);
     if (parts.length !== 3) {
         return null;
     }
@@ -56,7 +56,6 @@ export async function verifyAccessTokenEdge(
     const message = `${header}.${payload}`;
 
     const verified = await verifyHmacSha256(message, signature, JWT_SECRET);
-    console.log(`[AUTH_DEBUG] Signature verification result: ${verified ? 'SUCCESS' : 'FAILED'}`);
     if (!verified) {
         return null;
     }
@@ -64,11 +63,9 @@ export async function verifyAccessTokenEdge(
     try {
         const payloadJson = base64UrlDecodeToString(payload);
         const decoded = JSON.parse(payloadJson) as DecodedToken<AccessTokenPayload>;
-        console.log('[AUTH_DEBUG] JWT payload decoded');
-        console.log(`[AUTH_DEBUG] JWT payload: ${payloadJson}`);
         return decoded;
     } catch (error) {
-        console.log(`[AUTH_DEBUG] JWT verification failed reason: ${error instanceof Error ? error.message : String(error)}`);
+        log.info(`[AUTH_DEBUG] JWT verification failed reason: ${error instanceof Error ? error.message : String(error)}`);
         return null;
     }
 }

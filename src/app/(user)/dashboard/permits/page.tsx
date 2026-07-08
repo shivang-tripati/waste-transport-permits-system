@@ -148,7 +148,7 @@ function UserPermitsContent() {
                   
                   {permit.validUntil && (
                     <div className="mt-3 pt-3 border-t text-xs text-gray-500">
-                      Valid until: {new Date(permit.validUntil).toLocaleString()}
+                      Permit Expires At: {new Date(permit.validUntil).toLocaleString()}
                     </div>
                   )}
                 </CardContent>

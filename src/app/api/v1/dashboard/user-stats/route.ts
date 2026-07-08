@@ -6,6 +6,7 @@ import {
     createErrorResponse,
 } from '@/lib/api';
 import { Prisma } from '@prisma/client';
+import {log} from '@/lib/logger';
 
 /**
  * @swagger
@@ -103,7 +104,7 @@ export async function GET(request: NextRequest) {
             }))
         });
     } catch (error) {
-        console.error('User dashboard stats error:', error);
+        log.error('User dashboard stats error:', error);
         return createErrorResponse(error);
     }
 }

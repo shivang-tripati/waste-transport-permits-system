@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { EntityType, AuditAction } from '@prisma/client';
-
+import { log } from '@/lib/logger';
 export interface AuditLogParams {
     entityType: EntityType;
     entityId: string;
@@ -33,7 +33,7 @@ export async function createAuditLog(params: AuditLogParams): Promise<void> {
         });
     } catch (error) {
         // Log error but don't fail the main operation
-        console.error('Failed to create audit log:', error);
+        log.error('Failed to create audit log:', error);
     }
 }
 

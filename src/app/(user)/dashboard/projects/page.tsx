@@ -157,14 +157,12 @@ function ProjectForm({ onSuccess, companyId }: { onSuccess: () => void, companyI
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     setSubmitError(null);
-    console.log('Submitting project:', data);
     try {
       const payload = {
         ...data,
         companyId
       }
       const res = await post<any>('/projects', data);
-      console.log("Response", res);
       if (res.success) {
         onSuccess();
       } else {

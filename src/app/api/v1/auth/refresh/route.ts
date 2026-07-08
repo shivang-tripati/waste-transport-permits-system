@@ -6,7 +6,8 @@ import {
     generateAccessToken,
     generateRefreshToken,
     getRefreshTokenExpiry,
-} from "@/lib/auth";
+} from "@/lib/auth";;
+import {log} from "@/lib/logger";
 import { createErrorResponse, CommonErrors } from "@/lib/api";
 import { getClientIP, getUserAgent } from "@/lib/api/audit";
 import { v4 as uuidv4 } from "uuid";
@@ -180,7 +181,7 @@ export async function POST(request: NextRequest) {
 
         return response;
     } catch (error) {
-        console.error("Refresh error:", error);
+        log.error("Refresh error:", error);
         return createErrorResponse(error);
     }
 }

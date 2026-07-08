@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { submitPermitSchema, approvePermitSchema } from '@/schemas';
 import { sendTemplateNotification } from '@/lib/services/notificationOrchestrator';
@@ -130,19 +131,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             },
         });
 
-        // Trigger notification (Async)
-        if (permit.user?.phone) {
-            sendTemplateNotification({
-                eventType: 'PERMIT_SUBMITTED',
-                userId: permit.userId,
-                phone: permit.user.phone,
-                permitId: permit.id,
-                data: {
-                    permitNumber: permit.permitNumber,
-                    applicantName: permit.user.name
-                }
-            });
-        }
+        // // Trigger notification (Async)
+        // if (permit.user?.phone) {
+        //     sendTemplateNotification({
+        //         eventType: 'PERMIT_SUBMITTED',
+        //         userId: permit.userId,
+        //         phone: permit.user.phone,
+        //         permitId: permit.id,
+        //         data: {
+        //             permitNumber: permit.permitNumber,
+        //             applicantName: permit.user.name
+        //         }
+        //     });
+        // }
 
         // Create audit log
         await createAuditLog({
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(permit);
     } catch (error) {
-        console.error('Submit permit error:', error);
+        log.error('Submit permit error:', error);
         return createErrorResponse(error);
     }
 }

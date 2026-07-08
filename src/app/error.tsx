@@ -12,7 +12,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error('Unhandled Runtime Error:', error);
+  console.error('Unhandled Runtime Error:', error);
   }, [error]);
 
   return (

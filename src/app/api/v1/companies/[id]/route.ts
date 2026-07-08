@@ -6,6 +6,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateCompanySchema } from '@/schemas';
 
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(company);
     } catch (error) {
-        console.error('Get company error:', error);
+        log.error('Get company error:', error);
         return createErrorResponse(error);
     }
 }
@@ -195,7 +196,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse(company);
     } catch (error) {
-        console.error('Update company error:', error);
+        log.error('Update company error:', error);
         return createErrorResponse(error);
     }
 }
@@ -274,7 +275,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         return createSuccessResponse({ message: 'Company deactivated successfully' });
     } catch (error) {
-        console.error('Delete company error:', error);
+        log.error('Delete company error:', error);
         return createErrorResponse(error);
     }
 }

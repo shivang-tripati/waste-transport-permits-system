@@ -9,6 +9,7 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createWeighmentSchema, updateWeighmentSchema, approveWeighmentSchema, markWeighmentPaidSchema } from '@/schemas';
 import { generateWeighmentNumber } from '@/lib/utils';
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(weighments, createPaginationMeta(page, limit, total));
     } catch (error) {
-        console.error('List weighments error:', error);
+        log.error('List weighments error:', error);
         return createErrorResponse(error);
     }
 }
@@ -241,7 +242,7 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        console.log("BODY:", body)
+        log.info("BODY:", body)
 
         // Validate input
         const validation = createWeighmentSchema.safeParse(body);
@@ -253,7 +254,7 @@ export async function POST(request: NextRequest) {
 
         const data = validation.data;
 
-        // Verify permit exists and is in valid state
+        // Permit Verification exists and is in valid state
         const permit = await prisma.permit.findUnique({
             where: { id: data.permitId },
         });
@@ -316,20 +317,20 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Trigger notification (Async) - only if netWeight is calculated
-        if (weighment.netWeight !== null && weighment.permit?.user?.phone) {
-            sendTemplateNotification({
-                eventType: 'WEIGHMENT_RECORDED',
-                userId: weighment.permit.userId,
-                phone: weighment.permit.user.phone,
-                permitId: weighment.permitId,
-                data: {
-                    permitNumber: weighment.permit.permitNumber,
-                    netWeight: `${weighment.netWeight} kg`,
-                    plantName: weighment.plant.name
-                }
-            });
-        }
+        // // Trigger notification (Async) - only if netWeight is calculated
+        // if (weighment.netWeight !== null && weighment.permit?.user?.phone) {
+        //     sendTemplateNotification({
+        //         eventType: 'WEIGHMENT_RECORDED',
+        //         userId: weighment.permit.userId,
+        //         phone: weighment.permit.user.phone,
+        //         permitId: weighment.permitId,
+        //         data: {
+        //             permitNumber: weighment.permit.permitNumber,
+        //             netWeight: `${weighment.netWeight} kg`,
+        //             plantName: weighment.plant.name
+        //         }
+        //     });
+        // }
 
         // Create audit log
         await createAuditLog({
@@ -348,7 +349,7 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse(weighment, undefined, 201);
     } catch (error) {
-        console.error('Create weighment error:', error);
+        log.error('Create weighment error:', error);
         return createErrorResponse(error);
     }
 }

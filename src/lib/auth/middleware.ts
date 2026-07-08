@@ -4,6 +4,7 @@ import { verifyAccessToken, extractBearerToken, AccessTokenPayload } from './jwt
 import { hasPermission, Permission, UserContext } from './rbac';
 import { ApiError, createErrorResponse } from '@/lib/api/response';
 import { cookies } from 'next/headers';
+import {log} from '@/lib/logger';
 
 /**
  * Extended request with auth context
@@ -23,8 +24,7 @@ export type MiddlewareResult =
  * Authenticate request and extract user context
  */
 export async function authenticate(request: NextRequest): Promise<MiddlewareResult> {
-    console.log('[AUTH_DEBUG] authenticate() called');
-
+   
     // 1. try authorization header (react native)
     const authHeader = request.headers.get('Authorization');
     let token = extractBearerToken(authHeader);
@@ -34,8 +34,8 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         token = request.cookies.get('accessToken')?.value ?? null;
     }
 
-    if (authHeader) console.log('[AUTH_DEBUG] Authorization header token found');
-    if (token) console.log('[AUTH_DEBUG] Cookie token found');
+    if (authHeader) log.info('[AUTH_DEBUG] Authorization header token found');
+    if (token) log.info('[AUTH_DEBUG] Cookie token found');
 
     if (!token) {
         return {
@@ -47,10 +47,10 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
     }
 
     const decoded = verifyAccessToken(token);
-    console.log(`[AUTH_DEBUG] JWT verification ${decoded ? 'success' : 'failure'}`);
+    
 
     if (!decoded) {
-        console.log('[AUTH_DEBUG] Authentication failed because: invalid or expired token');
+        
         return {
             success: false,
             response: createErrorResponse(
@@ -59,17 +59,16 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         };
     }
 
-    console.log('[AUTH_DEBUG] Looking up user in database');
+    
     // Verify user still exists and is active
     const user = await prisma.user.findUnique({
         where: { id: decoded.data.userId },
         select: { id: true, role: true, companyId: true, isActive: true },
     });
 
-    console.log(`[AUTH_DEBUG] User found: {id:${user?.id ?? 'null'},role:${user?.role ?? 'null'},isActive:${user?.isActive ?? 'null'}}`);
-
+    
     if (!user || !user.isActive) {
-        console.log('[AUTH_DEBUG] Authentication failed because: user missing or inactive');
+        
         return {
             success: false,
             response: createErrorResponse(
@@ -78,7 +77,7 @@ export async function authenticate(request: NextRequest): Promise<MiddlewareResu
         };
     }
 
-    console.log('[AUTH_DEBUG] Authentication successful');
+    
     return {
         success: true,
         user: {

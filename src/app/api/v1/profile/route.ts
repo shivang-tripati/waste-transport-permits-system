@@ -7,6 +7,7 @@ import {
     createErrorResponse,
     CommonErrors,
 } from '@/lib/api';
+import  {log} from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateProfileSchema } from '@/schemas';
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse(safeUser);
     } catch (error) {
-        console.error('Get profile error:', error);
+        log.error('Get profile error:', error);
         return createErrorResponse(error);
     }
 }
@@ -127,7 +128,7 @@ export async function PATCH(request: NextRequest) {
 
         return createSuccessResponse(safeUser);
     } catch (error) {
-        console.error('Update profile error:', error);
+        log.error('Update profile error:', error);
         return createErrorResponse(error);
     }
 }

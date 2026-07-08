@@ -187,8 +187,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                 </Button>
               </Link>
 
-              <Link href="/verify" target="_blank" className="hidden sm:flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
-                Verify Permit
+              <Link href="/compliance/verify" target="_blank" className="hidden sm:flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
+                Permit Verification
                 <ExternalLink className="w-4 h-4" />
               </Link>
 
