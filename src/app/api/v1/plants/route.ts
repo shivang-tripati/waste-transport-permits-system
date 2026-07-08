@@ -15,6 +15,56 @@ import { Prisma } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'name', 'code', 'city'];
 
+/**
+ * @swagger
+ * /api/v1/plants:
+ *   get:
+ *     summary: List plants
+ *     description: Returns paginated list of waste processing plants. Defaults to active plants.
+ *     tags:
+ *       - Plants
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, name, code, city]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: string
+ *           enum: ['true', 'false']
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name, code, or city
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filter by city
+ *     responses:
+ *       200:
+ *         description: Paginated list of plants
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
@@ -73,6 +123,78 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/plants:
+ *   post:
+ *     summary: Create a plant
+ *     description: Creates a new waste processing plant. Admin only.
+ *     tags:
+ *       - Plants
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - code
+ *               - address
+ *               - city
+ *               - state
+ *               - pincode
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               code:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 20
+ *               address:
+ *                 type: string
+ *                 minLength: 5
+ *               city:
+ *                 type: string
+ *                 minLength: 2
+ *               state:
+ *                 type: string
+ *                 minLength: 2
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               latitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *               longitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *               contactEmail:
+ *                 type: string
+ *               contactPhone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *               operatingHours:
+ *                 type: string
+ *               capacity:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Capacity in tons per day
+ *     responses:
+ *       201:
+ *         description: Plant created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       409:
+ *         description: Duplicate plant code
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

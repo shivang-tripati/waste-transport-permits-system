@@ -17,6 +17,68 @@ import { Prisma } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'status', 'weighedAt'];
 
+/**
+ * @swagger
+ * /api/v1/weighments:
+ *   get:
+ *     summary: List weighments
+ *     description: >
+ *       Returns paginated weighment records. Admins/Plant Operators see all;
+ *       regular users see only their own APPROVED weighments.
+ *     tags:
+ *       - Weighments
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, status, weighedAt]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, APPROVED, REJECTED]
+ *       - in: query
+ *         name: paymentStatus
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, PAID, FAILED, REFUNDED]
+ *       - in: query
+ *         name: plantId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: permitId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by weighment number
+ *     responses:
+ *       200:
+ *         description: Paginated list of weighments
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
@@ -109,6 +171,58 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/weighments:
+ *   post:
+ *     summary: Create a weighment record
+ *     description: >
+ *       Creates a new weighment for an IN_TRANSIT permit.
+ *       Admin/Plant Operator only.
+ *     tags:
+ *       - Weighments
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - permitId
+ *               - plantId
+ *             properties:
+ *               permitId:
+ *                 type: string
+ *                 format: uuid
+ *               plantId:
+ *                 type: string
+ *                 format: uuid
+ *               firstWeight:
+ *                 type: number
+ *                 minimum: 0
+ *               secondWeight:
+ *                 type: number
+ *                 minimum: 0
+ *               firstWeighmentAt:
+ *                 type: string
+ *                 format: date-time
+ *               secondWeighmentAt:
+ *                 type: string
+ *                 format: date-time
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Weighment created
+ *       400:
+ *         description: Validation error or permit not IN_TRANSIT
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit or plant not found
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

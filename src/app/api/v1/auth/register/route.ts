@@ -11,6 +11,90 @@ import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { registerSchema } from '@/schemas';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * @swagger
+ * /api/v1/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     description: >
+ *       Creates a new user account and returns authentication tokens.
+ *       Web clients receive HttpOnly cookies; mobile clients receive
+ *       tokens in the response body.
+ *     tags:
+ *       - Auth
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: >
+ *                   Must contain at least one uppercase letter,
+ *                   one lowercase letter, and one number.
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, COMPANY_USER, INDIVIDUAL, GUEST]
+ *                 default: INDIVIDUAL
+ *               companyId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: Registration successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         email:
+ *                           type: string
+ *                           format: email
+ *                         name:
+ *                           type: string
+ *                         role:
+ *                           type: string
+ *                         companyId:
+ *                           type: string
+ *                           format: uuid
+ *                           nullable: true
+ *                         createdAt:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Email or phone already exists
+ */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();

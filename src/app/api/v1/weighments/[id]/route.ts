@@ -14,6 +14,31 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/weighments/{id}:
+ *   get:
+ *     summary: Get weighment by ID
+ *     description: Returns weighment details including permit and plant info.
+ *     tags:
+ *       - Weighments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Weighment details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Weighment not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -68,6 +93,50 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/weighments/{id}:
+ *   patch:
+ *     summary: Update a weighment
+ *     description: >
+ *       Partially updates a PENDING weighment (e.g., adding tare weight).
+ *       Admin/Plant Operator only.
+ *     tags:
+ *       - Weighments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               grossWeight:
+ *                 type: number
+ *                 minimum: 0
+ *               tareWeight:
+ *                 type: number
+ *                 minimum: 0
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Weighment updated
+ *       400:
+ *         description: Validation error or not in PENDING status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Weighment not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

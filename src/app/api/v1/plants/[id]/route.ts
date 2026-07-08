@@ -13,6 +13,29 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/plants/{id}:
+ *   get:
+ *     summary: Get plant by ID
+ *     description: Returns a single plant with permit and weighment counts.
+ *     tags:
+ *       - Plants
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Plant details
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Plant not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -41,6 +64,68 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/plants/{id}:
+ *   patch:
+ *     summary: Update a plant
+ *     description: Partially updates a plant (code cannot be changed). Admin only.
+ *     tags:
+ *       - Plants
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               address:
+ *                 type: string
+ *                 minLength: 5
+ *               city:
+ *                 type: string
+ *                 minLength: 2
+ *               state:
+ *                 type: string
+ *                 minLength: 2
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               latitude:
+ *                 type: number
+ *               longitude:
+ *                 type: number
+ *               contactEmail:
+ *                 type: string
+ *               contactPhone:
+ *                 type: string
+ *               operatingHours:
+ *                 type: string
+ *               capacity:
+ *                 type: integer
+ *                 minimum: 1
+ *     responses:
+ *       200:
+ *         description: Plant updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Plant not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -106,6 +191,31 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/plants/{id}:
+ *   delete:
+ *     summary: Deactivate a plant
+ *     description: Soft-deletes a plant. Admin only.
+ *     tags:
+ *       - Plants
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Plant deactivated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Plant not found
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

@@ -13,6 +13,53 @@ import { Prisma, UserRole } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'name', 'email', 'role'];
 
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: List users
+ *     description: Returns a paginated list of users. Admin only.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, name, email, role]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *           enum: [ADMIN, COMPANY_USER, INDIVIDUAL, GUEST]
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name or email
+ *     responses:
+ *       200:
+ *         description: Paginated list of users
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate

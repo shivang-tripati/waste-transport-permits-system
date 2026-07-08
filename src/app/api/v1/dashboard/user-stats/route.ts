@@ -7,6 +7,20 @@ import {
 } from '@/lib/api';
 import { Prisma } from '@prisma/client';
 
+/**
+ * @swagger
+ * /api/v1/dashboard/user-stats:
+ *   get:
+ *     summary: Get user-specific dashboard statistics
+ *     description: Returns dashboard metrics filtered for the authenticated user (or their company).
+ *     tags:
+ *       - Dashboard
+ *     responses:
+ *       200:
+ *         description: User dashboard statistics
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate

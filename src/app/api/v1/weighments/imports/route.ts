@@ -2,6 +2,32 @@ import { parseExcel } from "@/lib/imports/excelParser";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
+/**
+ * @swagger
+ * /api/v1/weighments/imports:
+ *   post:
+ *     summary: Import legacy weighments
+ *     description: Uploads an Excel file to bulk import legacy weighment records.
+ *     tags:
+ *       - Legacy Imports
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Import results
+ *       400:
+ *         description: No file uploaded
+ *       401:
+ *         description: Unauthorized
+ */
 export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -34,6 +60,41 @@ export async function POST(req: Request) {
 
 
 
+/**
+ * @swagger
+ * /api/v1/weighments/imports:
+ *   get:
+ *     summary: List legacy weighment imports
+ *     description: Returns paginated list of legacy weighment imports.
+ *     tags:
+ *       - Legacy Imports
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by slip number or vehicle number
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [PENDING, MAPPED, FAILED]
+ *     responses:
+ *       200:
+ *         description: Paginated list of imports
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 

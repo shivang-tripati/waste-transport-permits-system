@@ -13,6 +13,31 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/projects/{id}:
+ *   get:
+ *     summary: Get project by ID
+ *     description: Returns a single project with company info and permit count.
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Project details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -51,6 +76,65 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/projects/{id}:
+ *   patch:
+ *     summary: Update a project
+ *     description: Partially updates a project. Requires `project:update` permission.
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               description:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *                 minLength: 5
+ *               city:
+ *                 type: string
+ *                 minLength: 2
+ *               state:
+ *                 type: string
+ *                 minLength: 2
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               latitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *               longitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *     responses:
+ *       200:
+ *         description: Project updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -119,6 +203,31 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/projects/{id}:
+ *   delete:
+ *     summary: Deactivate a project
+ *     description: Soft-deletes a project. Requires `project:delete` permission.
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Project deactivated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

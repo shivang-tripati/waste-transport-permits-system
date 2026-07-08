@@ -1,5 +1,19 @@
 import { prisma } from "@/lib/db";
 
+/**
+ * @swagger
+ * /api/v1/weighments/imports/stats:
+ *   get:
+ *     summary: Get import statistics
+ *     description: Returns analytics for legacy weighment imports (status distribution, daily trend, weight stats).
+ *     tags:
+ *       - Legacy Imports
+ *     responses:
+ *       200:
+ *         description: Import statistics
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET() {
     // Status distribution
     const statusStats =

@@ -14,6 +14,50 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}/approve:
+ *   post:
+ *     summary: Approve a permit
+ *     description: >
+ *       Approves a SUBMITTED or UNDER_REVIEW permit with validity period.
+ *       Requires `permit:approve` permission.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               validFrom:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Defaults to current time if not provided
+ *               validUntil:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Required — must be after validFrom
+ *     responses:
+ *       200:
+ *         description: Permit approved
+ *       400:
+ *         description: Validation error or invalid permit status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden — requires permit:approve permission
+ *       404:
+ *         description: Permit not found
+ */
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

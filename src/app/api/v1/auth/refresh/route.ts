@@ -11,6 +11,49 @@ import { createErrorResponse, CommonErrors } from "@/lib/api";
 import { getClientIP, getUserAgent } from "@/lib/api/audit";
 import { v4 as uuidv4 } from "uuid";
 
+/**
+ * @swagger
+ * /api/v1/auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     description: >
+ *       Rotates the refresh token and issues a new access token.
+ *       Can receive the refresh token from the request body (mobile)
+ *       or from the HttpOnly cookie (web).
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token (mobile clients)
+ *     responses:
+ *       200:
+ *         description: Tokens refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       description: Only present for mobile clients
+ *                     refreshToken:
+ *                       type: string
+ *                       description: Only present for mobile clients
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
 export async function POST(request: NextRequest) {
     try {
         let body: any = null;

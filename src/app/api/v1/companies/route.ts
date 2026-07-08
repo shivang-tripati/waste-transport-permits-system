@@ -15,6 +15,53 @@ import { Prisma } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'name'];
 
+/**
+ * @swagger
+ * /api/v1/companies:
+ *   get:
+ *     summary: List companies
+ *     description: >
+ *       Admins see all companies with pagination. Non-admin users
+ *       only see their own associated company.
+ *     tags:
+ *       - Companies
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, name]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: string
+ *           enum: ['true', 'false']
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name, registration number, or GST number
+ *     responses:
+ *       200:
+ *         description: Paginated list of companies
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
@@ -88,6 +135,57 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/companies:
+ *   post:
+ *     summary: Create a company
+ *     description: Creates a new company. Requires `company:create` permission (Admin only).
+ *     tags:
+ *       - Companies
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               registrationNumber:
+ *                 type: string
+ *               gstNumber:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               contactEmail:
+ *                 type: string
+ *                 format: email
+ *               contactPhone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *     responses:
+ *       201:
+ *         description: Company created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden — insufficient permissions
+ *       409:
+ *         description: Duplicate registration or GST number
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

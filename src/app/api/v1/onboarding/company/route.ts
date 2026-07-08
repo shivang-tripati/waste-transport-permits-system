@@ -10,6 +10,59 @@ import {
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createCompanySchema } from '@/schemas';
 
+/**
+ * @swagger
+ * /api/v1/onboarding/company:
+ *   post:
+ *     summary: Onboard a company
+ *     description: >
+ *       Creates a new company and associates the authenticated COMPANY_USER with it.
+ *       Fails if the user already belongs to a company.
+ *     tags:
+ *       - Onboarding
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               registrationNumber:
+ *                 type: string
+ *               gstNumber:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               contactEmail:
+ *                 type: string
+ *                 format: email
+ *               contactPhone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *     responses:
+ *       201:
+ *         description: Company created and user linked
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden — not a company user
+ *       409:
+ *         description: User already has a company, or duplicate registration/GST number
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

@@ -5,6 +5,70 @@ import { authenticate } from '@/lib/auth';
 import { createErrorResponse, createSuccessResponse, CommonErrors } from '@/lib/api';
 import { createWasteEvidenceSchema } from '@/schemas';
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}/evidence:
+ *   post:
+ *     summary: Add waste evidence to a permit
+ *     description: Uploads waste evidence metadata for a permit. Only the permit creator or admin can add evidence.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - fileName
+ *               - filePath
+ *               - fileSize
+ *               - mimeType
+ *             properties:
+ *               fileName:
+ *                 type: string
+ *                 minLength: 1
+ *               filePath:
+ *                 type: string
+ *                 minLength: 1
+ *               fileSize:
+ *                 type: number
+ *                 minimum: 0
+ *                 exclusiveMinimum: true
+ *               mimeType:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               capturedAt:
+ *                 type: string
+ *                 format: date-time
+ *               latitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *               longitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *     responses:
+ *       200:
+ *         description: Evidence created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

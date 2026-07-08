@@ -8,6 +8,55 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}/qrcode:
+ *   get:
+ *     summary: Generate QR code for permit verification
+ *     description: Returns a data-URL QR code and verification URL for the permit.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: QR code data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     permitId:
+ *                       type: string
+ *                       format: uuid
+ *                     permitNumber:
+ *                       type: string
+ *                     token:
+ *                       type: string
+ *                       format: uuid
+ *                     verificationUrl:
+ *                       type: string
+ *                       format: uri
+ *                     qrCode:
+ *                       type: string
+ *                       description: Base64 data URL of the QR code image
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

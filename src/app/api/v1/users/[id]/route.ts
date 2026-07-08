@@ -8,6 +8,31 @@ import {
 } from '@/lib/api';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   get:
+ *     summary: Get user details
+ *     description: Returns detailed user information including recent permits and counts. Admin only.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: User details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: User not found
+ */
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -73,6 +98,44 @@ export async function GET(
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/users/{id}:
+ *   patch:
+ *     summary: Update user status
+ *     description: Activates or deactivates a user. Admin only.
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isActive
+ *             properties:
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: User status updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: User not found
+ */
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

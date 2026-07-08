@@ -10,6 +10,40 @@ import {
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createIdentityDocumentSchema } from '@/schemas';
 
+/**
+ * @swagger
+ * /api/v1/profile/identity:
+ *   post:
+ *     summary: Submit identity document
+ *     description: Upserts an identity document (Aadhaar or PAN) for the authenticated user.
+ *     tags:
+ *       - Profile
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - type
+ *               - documentNumber
+ *               - filePath
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [AADHAAR, PAN]
+ *               documentNumber:
+ *                 type: string
+ *               filePath:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document submitted successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
 export async function POST(request: NextRequest) {
     try {
         const authResult = await authenticate(request);

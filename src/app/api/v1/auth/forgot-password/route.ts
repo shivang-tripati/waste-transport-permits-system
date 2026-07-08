@@ -4,6 +4,48 @@ import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/
 import { forgotPasswordSchema } from '@/schemas';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     description: >
+ *       Sends a password reset link to the user's email. Always returns
+ *       success to prevent email enumeration attacks.
+ *     tags:
+ *       - Auth
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Reset link sent (if account exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *       400:
+ *         description: Validation error
+ */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();

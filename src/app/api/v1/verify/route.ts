@@ -12,6 +12,33 @@ import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/
  * ✅ Token validation only
  * ✅ Read-only projection
  */
+/**
+ * @swagger
+ * /api/v1/verify:
+ *   get:
+ *     summary: Verify a permit
+ *     description: >
+ *       Public endpoint to verify a permit's validity and status using its secure token.
+ *       No authentication required. Returns a safe subset of permit data.
+ *     tags:
+ *       - Verification
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: The secure verification token generated for the permit
+ *     responses:
+ *       200:
+ *         description: Verification result
+ *       400:
+ *         description: Token is missing
+ *       404:
+ *         description: Permit not found
+ */
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);

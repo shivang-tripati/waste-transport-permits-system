@@ -21,6 +21,41 @@ const folderMap: Record<string, string> = {
 
 
 
+/**
+ * @swagger
+ * /api/v1/upload:
+ *   post:
+ *     summary: Upload a file
+ *     description: >
+ *       Uploads a file to cloud storage and returns its URL.
+ *       Max size: 5MB. Allowed types: JPG, PNG, WEBP, PDF.
+ *     tags:
+ *       - Upload
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               type:
+ *                 type: string
+ *                 description: >
+ *                   Determines the storage folder.
+ *                   Values: waste_evidence, weighment, aadhaar, pan, identity, company_document, misc.
+ *     responses:
+ *       200:
+ *         description: File uploaded successfully
+ *       400:
+ *         description: Bad request (missing file, invalid type, too large)
+ *       401:
+ *         description: Unauthorized
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate user

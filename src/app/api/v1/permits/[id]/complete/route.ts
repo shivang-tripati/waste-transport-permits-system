@@ -12,6 +12,35 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}/complete:
+ *   post:
+ *     summary: Complete a permit
+ *     description: >
+ *       Marks an IN_TRANSIT permit as COMPLETED. Requires at least one
+ *       weighment record. Requires `permit:update` permission.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Permit completed
+ *       400:
+ *         description: Not IN_TRANSIT or missing weighment
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

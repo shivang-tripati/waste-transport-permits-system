@@ -9,6 +9,46 @@ import { BusinessEvent } from '@/lib/notifications/templateRegistry';
  * POST /api/notifications/trigger
  * External entry point for triggering WhatsApp notifications
  */
+/**
+ * @swagger
+ * /api/v1/notifications/trigger:
+ *   post:
+ *     summary: Trigger a notification
+ *     description: >
+ *       External entry point for triggering WhatsApp notifications.
+ *       Admin or trusted app only.
+ *     tags:
+ *       - Notifications
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - eventType
+ *               - userId
+ *             properties:
+ *               eventType:
+ *                 type: string
+ *               userId:
+ *                 type: string
+ *                 format: uuid
+ *               permitId:
+ *                 type: string
+ *                 format: uuid
+ *               data:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Notification triggered successfully
+ *       400:
+ *         description: Missing required fields
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User phone number not found
+ */
 export async function POST(request: NextRequest) {
     try {
         // 1. Authenticate (System Admin or trusted app)

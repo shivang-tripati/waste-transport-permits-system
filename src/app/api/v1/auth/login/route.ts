@@ -11,6 +11,81 @@ import { getClientIP, getUserAgent } from '@/lib/api/audit';
 import { loginSchema } from '@/schemas';
 import { v4 as uuidv4 } from 'uuid';
 
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: User login
+ *     description: >
+ *       Authenticates a user with email and password. For web clients, sets
+ *       HttpOnly cookies (accessToken, refreshToken). For mobile clients
+ *       (header `X-Client-Type: mobile`), returns tokens in the response body.
+ *     tags:
+ *       - Auth
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User email address
+ *               password:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: User password
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         email:
+ *                           type: string
+ *                           format: email
+ *                         name:
+ *                           type: string
+ *                         role:
+ *                           type: string
+ *                           enum: [ADMIN, COMPANY_USER, INDIVIDUAL, GUEST]
+ *                         companyId:
+ *                           type: string
+ *                           format: uuid
+ *                           nullable: true
+ *                     accessToken:
+ *                       type: string
+ *                       description: Only present for mobile clients
+ *                     refreshToken:
+ *                       type: string
+ *                       description: Only present for mobile clients
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Invalid credentials
+ *       403:
+ *         description: Account deactivated
+ */
 export async function POST(request: NextRequest) {
     try {
         console.log('[AUTH_DEBUG] Login request received');

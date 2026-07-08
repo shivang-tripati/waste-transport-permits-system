@@ -13,6 +13,31 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}:
+ *   get:
+ *     summary: Get permit by ID
+ *     description: Returns full permit details with project, plant, user, evidences, weighments, and audit info.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Permit details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -89,6 +114,71 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}:
+ *   patch:
+ *     summary: Update a permit
+ *     description: Partially updates a DRAFT permit. Only the permit owner or admin can update.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               wasteType:
+ *                 type: string
+ *                 enum: [CND_SEGREGATED, CND_UNSEGREGATED]
+ *               estimatedWeight:
+ *                 type: number
+ *               estimatedVolume:
+ *                 type: number
+ *               wasteDescription:
+ *                 type: string
+ *               pickupAddress:
+ *                 type: string
+ *               pickupCity:
+ *                 type: string
+ *               pickupState:
+ *                 type: string
+ *               pickupPincode:
+ *                 type: string
+ *               driverName:
+ *                 type: string
+ *               driverPhone:
+ *                 type: string
+ *               vehicleNumber:
+ *                 type: string
+ *               vehicleType:
+ *                 type: string
+ *               validFrom:
+ *                 type: string
+ *                 format: date-time
+ *               validUntil:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       200:
+ *         description: Permit updated
+ *       400:
+ *         description: Validation error or permit not in DRAFT status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -178,6 +268,33 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}:
+ *   delete:
+ *     summary: Delete a permit
+ *     description: Permanently deletes a DRAFT or CANCELLED permit. Admin only.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Permit deleted
+ *       400:
+ *         description: Permit not in DRAFT or CANCELLED status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden — admin only
+ *       404:
+ *         description: Permit not found
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

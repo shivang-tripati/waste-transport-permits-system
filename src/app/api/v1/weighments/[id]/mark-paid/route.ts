@@ -13,6 +13,50 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/weighments/{id}/mark-paid:
+ *   post:
+ *     summary: Mark weighment as paid
+ *     description: Records payment details for a PENDING weighment. Admin/Plant Operator only.
+ *     tags:
+ *       - Weighments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - paymentAmount
+ *             properties:
+ *               paymentAmount:
+ *                 type: number
+ *                 minimum: 0
+ *               paymentReference:
+ *                 type: string
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [CASH, CARD, UPI, BANK_TRANSFER]
+ *     responses:
+ *       200:
+ *         description: Payment recorded
+ *       400:
+ *         description: Validation error, not PENDING, or already PAID
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Weighment not found
+ */
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

@@ -14,6 +14,46 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/permits/{id}/reject:
+ *   post:
+ *     summary: Reject a permit
+ *     description: Rejects a SUBMITTED or UNDER_REVIEW permit. Requires `permit:reject` permission.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 minLength: 10
+ *                 description: Rejection reason (minimum 10 characters)
+ *     responses:
+ *       200:
+ *         description: Permit rejected
+ *       400:
+ *         description: Validation error or invalid permit status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Permit not found
+ */
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

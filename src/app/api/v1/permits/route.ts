@@ -19,6 +19,68 @@ const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'status', 'permitNumber'];
 // Fields allowed for filtering
 const FILTERABLE_FIELDS = ['status', 'wasteType', 'projectId', 'plantId'];
 
+/**
+ * @swagger
+ * /api/v1/permits:
+ *   get:
+ *     summary: List permits
+ *     description: >
+ *       Returns paginated permits. Admins see all; company users see
+ *       their company's permits; individual users see only their own.
+ *     tags:
+ *       - Permits
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, status, permitNumber]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, IN_TRANSIT, COMPLETED, EXPIRED, REJECTED, CANCELLED]
+ *       - in: query
+ *         name: wasteType
+ *         schema:
+ *           type: string
+ *           enum: [CND_SEGREGATED, CND_UNSEGREGATED]
+ *       - in: query
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: plantId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by permit number, driver name, or vehicle number
+ *     responses:
+ *       200:
+ *         description: Paginated list of permits
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
@@ -108,6 +170,100 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/permits:
+ *   post:
+ *     summary: Create a permit
+ *     description: Creates a new waste transport permit in DRAFT status.
+ *     tags:
+ *       - Permits
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - wasteType
+ *               - plantId
+ *               - pickupAddress
+ *               - pickupCity
+ *               - pickupState
+ *               - pickupPincode
+ *             properties:
+ *               wasteType:
+ *                 type: string
+ *                 enum: [CND_SEGREGATED, CND_UNSEGREGATED]
+ *               estimatedWeight:
+ *                 type: number
+ *                 minimum: 0
+ *                 exclusiveMinimum: true
+ *               estimatedVolume:
+ *                 type: number
+ *                 minimum: 0
+ *                 exclusiveMinimum: true
+ *               wasteDescription:
+ *                 type: string
+ *               projectId:
+ *                 type: string
+ *                 format: uuid
+ *               companyId:
+ *                 type: string
+ *                 format: uuid
+ *               plantId:
+ *                 type: string
+ *                 format: uuid
+ *               pickupAddress:
+ *                 type: string
+ *                 minLength: 5
+ *               pickupCity:
+ *                 type: string
+ *                 minLength: 2
+ *               pickupState:
+ *                 type: string
+ *                 minLength: 2
+ *               pickupPincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               pickupLatitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *               pickupLongitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *               driverName:
+ *                 type: string
+ *               driverPhone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *               vehicleNumber:
+ *                 type: string
+ *               vehicleType:
+ *                 type: string
+ *               licenseNumber:
+ *                 type: string
+ *                 pattern: '^[A-Z]{2}\d{2}\d{4}\d{7}$'
+ *               validFrom:
+ *                 type: string
+ *                 format: date-time
+ *               validUntil:
+ *                 type: string
+ *                 format: date-time
+ *     responses:
+ *       201:
+ *         description: Permit created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden — no access to the project
+ *       404:
+ *         description: Project or plant not found
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

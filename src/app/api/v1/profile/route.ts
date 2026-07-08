@@ -10,6 +10,20 @@ import {
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { updateProfileSchema } from '@/schemas';
 
+/**
+ * @swagger
+ * /api/v1/profile:
+ *   get:
+ *     summary: Get current user profile
+ *     description: Returns the authenticated user's profile information.
+ *     tags:
+ *       - Profile
+ *     responses:
+ *       200:
+ *         description: User profile
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         const authResult = await authenticate(request);
@@ -41,6 +55,35 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/profile:
+ *   patch:
+ *     summary: Update current user profile
+ *     description: Updates basic profile information (name, phone) for the authenticated user.
+ *     tags:
+ *       - Profile
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ */
 export async function PATCH(request: NextRequest) {
     try {
         const authResult = await authenticate(request);

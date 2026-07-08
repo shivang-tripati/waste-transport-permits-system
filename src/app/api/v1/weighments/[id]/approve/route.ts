@@ -14,6 +14,48 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/weighments/{id}/approve:
+ *   post:
+ *     summary: Approve a weighment
+ *     description: >
+ *       Approves a PENDING, PAID weighment. Completes the associated permit.
+ *       Requires `weighment:approve` permission (Admin/Plant Operator).
+ *     tags:
+ *       - Weighments
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               paymentAmount:
+ *                 type: number
+ *                 minimum: 0
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [CASH, CARD, UPI, BANK_TRANSFER]
+ *             description: Optional legacy payment capture during approval
+ *     responses:
+ *       200:
+ *         description: Weighment approved and slip generated
+ *       400:
+ *         description: Not in PENDING status or not PAID
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Weighment not found
+ */
 export async function POST(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

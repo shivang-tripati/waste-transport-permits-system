@@ -15,6 +15,60 @@ import { Prisma } from '@prisma/client';
 
 const SORTABLE_FIELDS = ['createdAt', 'updatedAt', 'name', 'city'];
 
+/**
+ * @swagger
+ * /api/v1/projects:
+ *   get:
+ *     summary: List projects
+ *     description: >
+ *       Returns paginated projects. Admins see all projects;
+ *       company users see only their company's projects;
+ *       individual users receive an empty list.
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, name, city]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: companyId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Filter by company (admin only)
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: string
+ *           enum: ['true', 'false']
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name, city, or address
+ *     responses:
+ *       200:
+ *         description: Paginated list of projects
+ *       401:
+ *         description: Unauthorized
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
@@ -85,6 +139,68 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/projects:
+ *   post:
+ *     summary: Create a project
+ *     description: Creates a new project for a company. Requires `project:create` permission.
+ *     tags:
+ *       - Projects
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - address
+ *               - city
+ *               - state
+ *               - pincode
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               description:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *                 minLength: 5
+ *               city:
+ *                 type: string
+ *                 minLength: 2
+ *               state:
+ *                 type: string
+ *                 minLength: 2
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               latitude:
+ *                 type: number
+ *                 minimum: -90
+ *                 maximum: 90
+ *               longitude:
+ *                 type: number
+ *                 minimum: -180
+ *                 maximum: 180
+ *               companyId:
+ *                 type: string
+ *                 format: uuid
+ *                 description: Defaults to the authenticated user's company
+ *     responses:
+ *       201:
+ *         description: Project created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Company not found
+ */
 export async function POST(request: NextRequest) {
     try {
         // Authenticate

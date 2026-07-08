@@ -13,6 +13,31 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
+/**
+ * @swagger
+ * /api/v1/companies/{id}:
+ *   get:
+ *     summary: Get company by ID
+ *     description: Returns a single company with project counts. Non-admins can only view their own company.
+ *     tags:
+ *       - Companies
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Company details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Company not found
+ */
 export async function GET(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -54,6 +79,62 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/companies/{id}:
+ *   patch:
+ *     summary: Update a company
+ *     description: Partially updates a company. Requires `company:update` permission.
+ *     tags:
+ *       - Companies
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *               registrationNumber:
+ *                 type: string
+ *               gstNumber:
+ *                 type: string
+ *               address:
+ *                 type: string
+ *               city:
+ *                 type: string
+ *               state:
+ *                 type: string
+ *               pincode:
+ *                 type: string
+ *                 pattern: '^\d{6}$'
+ *               contactEmail:
+ *                 type: string
+ *                 format: email
+ *               contactPhone:
+ *                 type: string
+ *                 pattern: '^\+?[1-9]\d{9,14}$'
+ *     responses:
+ *       200:
+ *         description: Company updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Company not found
+ */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;
@@ -119,6 +200,31 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+/**
+ * @swagger
+ * /api/v1/companies/{id}:
+ *   delete:
+ *     summary: Deactivate a company
+ *     description: Soft-deletes a company by setting `isActive` to false. Requires `company:delete` permission.
+ *     tags:
+ *       - Companies
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Company deactivated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Company not found
+ */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const { id } = await params;

@@ -7,6 +7,22 @@ import {
     CommonErrors,
 } from '@/lib/api';
 
+/**
+ * @swagger
+ * /api/v1/dashboard/stats:
+ *   get:
+ *     summary: Get overall dashboard statistics
+ *     description: Returns high-level system metrics and recent permit activity. Admin only.
+ *     tags:
+ *       - Dashboard
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 export async function GET(request: NextRequest) {
     try {
         // Authenticate
