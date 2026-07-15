@@ -130,6 +130,17 @@ export const toDateTimeLocalValue = (val?: string | null) => {
 };
 
 
+export function parsePermitDateTime(value: string): Date {
+
+    const hasTimezone = /(?:Z|[+-]\d{2}:\d{2})$/.test(value);
+    const hasSeconds = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value);
+
+    const normalized = hasTimezone
+        ? value
+        : `${value}${hasSeconds ? '' : ':00'}+05:30`;
+
+    return new Date(normalized);
+}
 
 export async function uploadEvidenceAsync(
     permitId: string,

@@ -9,10 +9,10 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
-import {log} from '@/lib/logger';
+import { log } from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createPermitSchema } from '@/schemas';
-import { generatePermitNumber } from '@/lib/utils';
+import { generatePermitNumber, parsePermitDateTime } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 
 // Fields allowed for sorting
@@ -288,6 +288,25 @@ export async function POST(request: NextRequest) {
         }
 
         const data = validation.data;
+        const validFrom = parsePermitDateTime(data.validFrom);
+        const validUntil = parsePermitDateTime(data.validUntil);
+
+        const fieldErrors: Record<string, string[]> = {};
+
+        if (Number.isNaN(validFrom.getTime())) {
+            fieldErrors.validFrom = ['Invalid start date/time'];
+        }
+
+        if (Number.isNaN(validUntil.getTime())) {
+            fieldErrors.validUntil = ['Invalid end date/time'];
+        }
+
+        if (Object.keys(fieldErrors).length > 0) {
+            return createErrorResponse(
+                CommonErrors.validationError(fieldErrors)
+            );
+        }
+
         let project = null
 
         // Verify project if provided
@@ -348,8 +367,8 @@ export async function POST(request: NextRequest) {
                 vehicleNumber: data.vehicleNumber ?? null,
                 vehicleType: data.vehicleType ?? null,
 
-                validFrom: data.validFrom,
-                validUntil: data.validUntil,
+                validFrom,
+                validUntil,
 
                 userId: user.userId,
                 status: mode === 'draft' ? 'DRAFT' : 'SUBMITTED',

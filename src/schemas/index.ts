@@ -1,13 +1,10 @@
 import { z } from 'zod';
-import { UserRole, WasteType, PermitStatus, WeighmentStatus, PaymentStatus } from '@prisma/client';
-import { normalizeDateTime } from '@/lib/utils';
+import { UserRole, WasteType} from '@prisma/client';
 
 // regex patterns
 const indianMobileRegex = /^[6-9]\d{9}$/;
 
 const indianMobileMessage = "Enter a valid mobile number (10 digits)";
-
-
 
 // ============================================================
 // AUTH SCHEMAS
@@ -136,21 +133,19 @@ export const updatePlantSchema = createPlantSchema.partial().omit({ code: true }
 // ============================================================
 // PERMIT SCHEMAS
 // ============================================================
-
 const dateTimeField = (label: string) =>
     z
         .string()
-        .optional()
+        .min(1, `${label} is required`)
         .refine(
-            (val) => {
-                if (!val) return true;
+            (value) => {
+                // HTML datetime-local: 2026-07-14T16:32
+                if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+                    return true;
+                }
 
-                // Accept HTML datetime-local
-                if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) return true;
-
-                // Accept ISO
-                const d = new Date(val);
-                return !isNaN(d.getTime());
+                // Complete ISO date
+                return !Number.isNaN(new Date(value).getTime());
             },
             { message: `Please select a valid ${label}` }
         );
