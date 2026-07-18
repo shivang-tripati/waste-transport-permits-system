@@ -133,3 +133,41 @@ body {
     display: none;
   }
 }
+
+
+@media print {
+  nav,
+  footer,
+  .permit-qr-actions {
+    display: none !important;
+  }
+
+  body {
+    color: #000;
+    background: #fff;
+  }
+
+  .gov-hero-slider {
+    display: none;
+  }
+
+  .permit-qr-card {
+    width: 100%;
+    max-width: 150mm;
+    margin: 0 auto;
+    border: 1px solid #000;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .permit-qr-card img {
+    width: 85mm;
+    height: 85mm;
+    image-rendering: crisp-edges;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+}

@@ -6,6 +6,43 @@ const indianMobileRegex = /^[6-9]\d{9}$/;
 
 const indianMobileMessage = "Enter a valid mobile number (10 digits)";
 
+
+const isValidDateTime = (value: string): boolean => {
+    // HTML datetime-local value.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/.test(value)) {
+        return !Number.isNaN(new Date(value).getTime());
+    }
+
+    // ISO date-time value, including timezone/Z.
+    return !Number.isNaN(new Date(value).getTime());
+};
+
+const validatePermitDateRange = (
+    data: { validFrom?: string; validUntil?: string },
+    ctx: z.RefinementCtx
+) => {
+    if (!data.validFrom || !data.validUntil) return;
+
+    const from = new Date(data.validFrom);
+    const until = new Date(data.validUntil);
+
+    if (until.getTime() <= from.getTime()) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['validUntil'],
+            message: 'Permit expiry must be after the valid-from date and time',
+        });
+    }
+};
+
+
+const requiredDateTimeField = (label: string) =>
+    z
+        .string()
+        .min(1, `${label} is required`)
+        .refine(isValidDateTime, { message: `Please select a valid ${label}` });
+
+
 // ============================================================
 // AUTH SCHEMAS
 // ============================================================
@@ -202,10 +239,12 @@ export const submitPermitSchema = z.object({
     ).optional(),
 });
 
-export const approvePermitSchema = z.object({
-    validFrom: dateTimeField("Valid from").refine(val => val !== null, "Valid from is required"),
-    validUntil: dateTimeField("Permit expiry time").refine(val => val !== null, "Permit expiry time is required"),
-});
+export const approvePermitSchema = z
+    .object({
+        validFrom: requiredDateTimeField('Valid from').optional(),
+        validUntil: requiredDateTimeField('Permit expiry time'),
+    })
+    .superRefine(validatePermitDateRange);
 
 export const rejectPermitSchema = z.object({
     reason: z.string().min(10, 'Rejection reason must be at least 10 characters'),

@@ -1,19 +1,27 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { authenticate, hasPermission } from '@/lib/auth';
-import { createSuccessResponse, createErrorResponse, CommonErrors } from '@/lib/api';
+import { authenticate } from '@/lib/auth';
+import {
+    createSuccessResponse,
+    createErrorResponse,
+    CommonErrors,
+} from '@/lib/api';
 import * as QRCode from 'qrcode';
-import {log} from '@/lib/logger';
+import { log } from '@/lib/logger';
+
 interface RouteParams {
     params: Promise<{ id: string }>;
 }
+
+const QR_PRIMARY_COLOR = '#762D58';
+const QR_BACKGROUND_COLOR = '#FFFFFF';
 
 /**
  * @swagger
  * /api/v1/permits/{id}/qrcode:
  *   get:
  *     summary: Generate QR code for permit verification
- *     description: Returns a data-URL QR code and verification URL for the permit.
+ *     description: Returns a branded QR-code data URL and verification URL.
  *     tags:
  *       - Permits
  *     parameters:
@@ -25,31 +33,7 @@ interface RouteParams {
  *           format: uuid
  *     responses:
  *       200:
- *         description: QR code data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     permitId:
- *                       type: string
- *                       format: uuid
- *                     permitNumber:
- *                       type: string
- *                     token:
- *                       type: string
- *                       format: uuid
- *                     verificationUrl:
- *                       type: string
- *                       format: uri
- *                     qrCode:
- *                       type: string
- *                       description: Base64 data URL of the QR code image
+ *         description: QR code generated successfully
  *       401:
  *         description: Unauthorized
  *       403:
@@ -57,17 +41,19 @@ interface RouteParams {
  *       404:
  *         description: Permit not found
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+    request: NextRequest,
+    { params }: RouteParams
+) {
     try {
         const { id } = await params;
 
-        // Authenticate
         const authResult = await authenticate(request);
+
         if (!authResult.success) {
             return authResult.response;
         }
 
-        // Get permit
         const permit = await prisma.permit.findUnique({
             where: { id },
             select: {
@@ -76,52 +62,83 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 permitNumber: true,
                 status: true,
                 userId: true,
-                project: { select: { companyId: true } },
+                project: {
+                    select: {
+                        companyId: true,
+                    },
+                },
             },
         });
 
         if (!permit) {
-            return createErrorResponse(CommonErrors.notFound('Permit'));
+            return createErrorResponse(
+                CommonErrors.notFound('Permit')
+            );
         }
 
         const { user } = authResult;
 
-        // Check access (owner, company member, or admin)
         const hasAccess =
             user.role === 'ADMIN' ||
             permit.userId === user.userId ||
-            (user.companyId && user.companyId === permit?.project?.companyId);
+            Boolean(
+                user.companyId &&
+                user.companyId === permit.project?.companyId
+            );
 
         if (!hasAccess) {
             return createErrorResponse(
-                CommonErrors.forbidden('You do not have access to this permit')
+                CommonErrors.forbidden(
+                    'You do not have access to this permit'
+                )
             );
         }
 
-        // Generate verification URL
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        const verificationUrl = `${appUrl}/compliance/verify?token=${permit.token}`;
+        const appUrl =
+            process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ||
+            'http://localhost:3000';
 
-        // Generate QR code as data URL
-        const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
-            width: 300,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF',
-            },
-            errorCorrectionLevel: 'M',
-        });
+        const verificationUrl = new URL(
+            '/compliance/verify',
+            appUrl
+        );
+
+        verificationUrl.searchParams.set('token', permit.token);
+
+        /*
+         * High error correction improves scanning reliability,
+         * especially when the QR is printed, resized, or displayed
+         * on a low-brightness mobile screen.
+         */
+        const qrCodeDataUrl = await QRCode.toDataURL(
+            verificationUrl.toString(),
+            {
+                width: 420,
+                margin: 3,
+                errorCorrectionLevel: 'H',
+                color: {
+                    dark: '#762D58',
+                    light: '#FFFFFF',
+                },
+            }
+        );
 
         return createSuccessResponse({
             permitId: permit.id,
             permitNumber: permit.permitNumber,
+            status: permit.status,
             token: permit.token,
-            verificationUrl,
+            verificationUrl: verificationUrl.toString(),
             qrCode: qrCodeDataUrl,
+            qrCodeStyle: {
+                foregroundColor: QR_PRIMARY_COLOR,
+                backgroundColor: QR_BACKGROUND_COLOR,
+                errorCorrectionLevel: 'H',
+                width: 420,
+            },
         });
     } catch (error) {
-        log.error('Generate QR code error:', error);
+
         return createErrorResponse(error);
     }
 }

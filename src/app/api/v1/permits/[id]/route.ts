@@ -69,7 +69,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                     select: { id: true, name: true, code: true, address: true, city: true },
                 },
                 user: {
-                    select: { id: true, name: true, email: true, phone: true },
+                    select: { id: true, name: true, email: true, phone: true, role: true },
                 },
                 wasteEvidences: true,
                 weighments: {
@@ -88,7 +88,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             return createErrorResponse(CommonErrors.notFound('Permit'));
         }
 
-        const companyId = permit.project?.company?.id;
+        const companyId =
+    permit.companyId ??
+    permit.project?.company?.id ??
+    undefined;
 
         // Check access permission
         if (!isAdmin(user.role)) {
@@ -180,91 +183,320 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  *       404:
  *         description: Permit not found
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+    request: NextRequest,
+    { params }: RouteParams
+) {
     try {
         const { id } = await params;
 
-        // Authenticate
+        // 1. Authenticate
         const authResult = await authenticate(request);
+
         if (!authResult.success) {
             return authResult.response;
         }
 
         const { user } = authResult;
-        const body = await request.json();
 
-        // Validate input
-        const validation = updatePermitSchema.safeParse(body);
-        if (!validation.success) {
+        // 2. Find the existing permit before processing update data
+        const existingPermit =
+            await prisma.permit.findUnique({
+                where: { id },
+                include: {
+                    project: {
+                        select: {
+                            id: true,
+                            companyId: true,
+                        },
+                    },
+                },
+            });
+
+        if (!existingPermit) {
             return createErrorResponse(
-                CommonErrors.validationError(validation.error.flatten().fieldErrors)
+                CommonErrors.notFound('Permit')
             );
         }
 
-        // Get existing permit
-        const existingPermit = await prisma.permit.findUnique({
-            where: { id },
-            include: { project: { select: { companyId: true } } },
-        });
+        // 3. Check whether the authenticated user can access it
+        const resourceCompanyId =
+            existingPermit.companyId ??
+            existingPermit.project?.companyId ??
+            undefined;
 
-        if (!existingPermit) {
-            return createErrorResponse(CommonErrors.notFound('Permit'));
-        }
-
-        // Check access permission
         if (!isAdmin(user.role)) {
             const hasAccess = canAccessResource(
                 user,
-                { userId: existingPermit.userId, companyId: existingPermit.project?.companyId },
+                {
+                    userId: existingPermit.userId,
+                    companyId: resourceCompanyId,
+                },
                 true
             );
 
             if (!hasAccess) {
                 return createErrorResponse(
-                    CommonErrors.forbidden('You do not have access to this permit')
+                    CommonErrors.forbidden(
+                        'You do not have access to this permit'
+                    )
                 );
             }
         }
 
-        // Can only update DRAFT permits
+        // 4. Only DRAFT permits are editable
         if (existingPermit.status !== 'DRAFT') {
             return createErrorResponse(
-                CommonErrors.badRequest('Can only update permits in DRAFT status')
+                CommonErrors.badRequest(
+                    'Only draft permits can be edited'
+                )
+            );
+        }
+
+        // 5. Read and validate request data
+        const body = await request.json();
+
+        const validation =
+            updatePermitSchema.safeParse(body);
+
+        if (!validation.success) {
+            return createErrorResponse(
+                CommonErrors.validationError(
+                    validation.error.flatten().fieldErrors
+                )
             );
         }
 
         const data = validation.data;
 
-        // Update permit
-        const permit = await prisma.permit.update({
-            where: { id },
-            data: {
-                ...data,
-                validFrom: data.validFrom ? new Date(data.validFrom) : undefined,
-                validUntil: data.validUntil ? new Date(data.validUntil) : undefined,
-                updatedByUserId: user.userId,
-            },
-            include: {
-                project: { select: { id: true, name: true } },
-                plant: { select: { id: true, name: true, code: true } },
-            },
-        });
+        /*
+         * companyId must not be accepted directly from the client.
+         * It is derived from the selected project or preserved from
+         * the existing permit.
+         */
+        const {
+            companyId: _ignoredCompanyId,
+            projectId,
+            plantId,
+            validFrom,
+            validUntil,
+            ...editableFields
+        } = data;
 
-        // Create audit log
+        let resolvedProjectCompanyId:
+            | string
+            | null
+            | undefined;
+
+        // 6. Validate a changed project
+        if (projectId !== undefined) {
+            const project =
+                await prisma.project.findUnique({
+                    where: {
+                        id: projectId,
+                    },
+                    select: {
+                        id: true,
+                        companyId: true,
+                    },
+                });
+
+            if (!project) {
+                return createErrorResponse(
+                    CommonErrors.notFound('Project')
+                );
+            }
+
+            /*
+             * Non-admin users may only assign projects belonging
+             * to their own company.
+             */
+            if (!isAdmin(user.role)) {
+                if (
+                    user.role !== 'COMPANY_USER' ||
+                    !user.companyId
+                ) {
+                    return createErrorResponse(
+                        CommonErrors.forbidden(
+                            'Only company users can assign a project to a permit'
+                        )
+                    );
+                }
+
+                if (
+                    project.companyId !== user.companyId
+                ) {
+                    return createErrorResponse(
+                        CommonErrors.forbidden(
+                            'You cannot assign a project belonging to another company'
+                        )
+                    );
+                }
+            }
+
+            resolvedProjectCompanyId =
+                project.companyId;
+        }
+
+        // 7. Validate a changed plant
+        if (plantId !== undefined) {
+            const plant =
+                await prisma.plant.findUnique({
+                    where: {
+                        id: plantId,
+                    },
+                    select: {
+                        id: true,
+                        isActive: true,
+                    },
+                });
+
+            if (!plant) {
+                return createErrorResponse(
+                    CommonErrors.notFound('Plant')
+                );
+            }
+
+            if (!plant.isActive) {
+                return createErrorResponse(
+                    CommonErrors.badRequest(
+                        'The selected plant is not active'
+                    )
+                );
+            }
+        }
+
+        // 8. Validate date range against both new and existing values
+        const nextValidFrom =
+            validFrom !== undefined
+                ? new Date(validFrom)
+                : existingPermit.validFrom;
+
+        const nextValidUntil =
+            validUntil !== undefined
+                ? new Date(validUntil)
+                : existingPermit.validUntil;
+
+        if (
+            nextValidFrom &&
+            nextValidUntil &&
+            nextValidUntil.getTime() <=
+                nextValidFrom.getTime()
+        ) {
+            return createErrorResponse(
+                CommonErrors.validationError({
+                    validUntil: [
+                        'Permit expiry must be after the valid-from date and time',
+                    ],
+                })
+            );
+        }
+
+        /*
+         * Build the update explicitly.
+         *
+         * Undefined fields are not written, so PATCH remains a
+         * partial-update endpoint.
+         */
+        const updateData: Record<string, unknown> = {
+            ...editableFields,
+            updatedByUserId: user.userId,
+        };
+
+        if (projectId !== undefined) {
+            updateData.projectId = projectId;
+            updateData.companyId =
+                resolvedProjectCompanyId ?? null;
+        }
+
+        if (plantId !== undefined) {
+            updateData.plantId = plantId;
+        }
+
+        if (validFrom !== undefined) {
+            updateData.validFrom =
+                new Date(validFrom);
+        }
+
+        if (validUntil !== undefined) {
+            updateData.validUntil =
+                new Date(validUntil);
+        }
+
+        // 9. Update the same existing DRAFT permit
+        const updatedPermit =
+            await prisma.permit.update({
+                where: { id },
+                data: updateData,
+                include: {
+                    project: {
+                        select: {
+                            id: true,
+                            name: true,
+                            address: true,
+                            city: true,
+                            state: true,
+                            company: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    plant: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true,
+                            address: true,
+                            city: true,
+                        },
+                    },
+                    wasteEvidences: true,
+                },
+            });
+
+        // 10. Record the update
         await createAuditLog({
             entityType: 'PERMIT',
-            entityId: permit.id,
+            entityId: updatedPermit.id,
             action: 'UPDATED',
             performedByUserId: user.userId,
-            previousState: { status: existingPermit.status },
-            newState: data,
-            ipAddress: getClientIP(request.headers),
-            userAgent: getUserAgent(request.headers),
+            previousState: {
+                status: existingPermit.status,
+                projectId:
+                    existingPermit.projectId,
+                plantId:
+                    existingPermit.plantId,
+                validFrom:
+                    existingPermit.validFrom,
+                validUntil:
+                    existingPermit.validUntil,
+            },
+            newState: {
+                ...data,
+                companyId:
+                    resolvedProjectCompanyId ??
+                    existingPermit.companyId,
+            },
+            ipAddress: getClientIP(
+                request.headers
+            ),
+            userAgent: getUserAgent(
+                request.headers
+            ),
         });
 
-        return createSuccessResponse(permit);
+        return createSuccessResponse(
+            updatedPermit
+        );
     } catch (error) {
-        log.error('Update permit error:', error);
+        log.error(
+            'Update permit error:',
+            error
+        );
+
         return createErrorResponse(error);
     }
 }

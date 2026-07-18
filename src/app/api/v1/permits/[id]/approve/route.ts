@@ -82,6 +82,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Validate input
         const validation = approvePermitSchema.safeParse(body);
+        console.log(validation)
         if (!validation.success) {
             return createErrorResponse(
                 CommonErrors.validationError(validation.error.flatten().fieldErrors)

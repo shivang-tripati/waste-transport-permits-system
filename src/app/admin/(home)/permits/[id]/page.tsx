@@ -116,15 +116,39 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
 
   const handleApprove = async () => {
     if (!validUntil) return;
+
     setActionLoading(true);
+
     try {
-      const result = await post<PermitDetail>(`/permits/${id}/approve`, { validUntil });
+      const parsedValidUntil = new Date(validUntil);
+
+      if (Number.isNaN(parsedValidUntil.getTime())) {
+        alert('Please select a valid permit expiry date and time');
+        return;
+      }
+
+      if (parsedValidUntil <= new Date()) {
+        alert('Permit expiry time must be in the future');
+        return;
+      }
+
+      const result = await post<PermitDetail>(
+        `/permits/${id}/approve`,
+        {
+          validUntil: parsedValidUntil.toISOString(),
+        }
+      );
+
       if (result.success && result.data) {
         setPermit(result.data);
         setShowApproveModal(false);
+        setValidUntil('');
       } else {
         alert(result.error?.message || 'Failed to approve');
       }
+    } catch (error) {
+      console.error('Approve permit failed:', error);
+      alert('Something went wrong while approving the permit');
     } finally {
       setActionLoading(false);
     }
@@ -144,6 +168,33 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const openApproveModal = () => {
+    if (permit?.validUntil) {
+      const date = new Date(permit.validUntil);
+
+      const localValue = new Date(
+        date.getTime() - date.getTimezoneOffset() * 60_000
+      )
+        .toISOString()
+        .slice(0, 16);
+
+      setValidUntil(localValue);
+    } else {
+      const tomorrow = new Date();
+      tomorrow.setHours(tomorrow.getHours() + 24);
+
+      const localValue = new Date(
+        tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60_000
+      )
+        .toISOString()
+        .slice(0, 16);
+
+      setValidUntil(localValue);
+    }
+
+    setShowApproveModal(true);
   };
 
   const handleStartTransit = async () => {
@@ -386,9 +437,9 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
           </p>
 
           <p className="text-xs text-gray-500 leading-tight">
-  {permit.pickupAddress}<br />
-  {permit.pickupCity}, {permit.pickupState}
-</p>
+            {permit.pickupAddress}<br />
+            {permit.pickupCity}, {permit.pickupState}
+          </p>
 
 
           {permit.validFrom && permit.validUntil && (
@@ -861,10 +912,13 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Permit Expiry Time * *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Permit Expiry Time *</label>
                 <input
                   type="datetime-local"
                   value={validUntil}
+                  min={new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
+                    .toISOString()
+                    .slice(0, 16)}
                   onChange={(e) => setValidUntil(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
@@ -995,10 +1049,10 @@ export default function AdminPermitDetailPage({ params }: { params: Promise<{ id
                 className="flex-1 py-2.5 text-sm font-semibold"
                 onClick={() => {
                   setValidUntil(
-  permit.validUntil
-    ? formatForDatetimeLocal(new Date(permit.validUntil))
-    : ''
-);
+                    permit.validUntil
+                      ? formatForDatetimeLocal(new Date(permit.validUntil))
+                      : ''
+                  );
 
                   setShowApproveModal(true);
                 }}
