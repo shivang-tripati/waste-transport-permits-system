@@ -9,7 +9,7 @@ import {
     parseSort,
     createPaginationMeta,
 } from '@/lib/api';
-import  {log} from '@/lib/logger';
+import { log } from '@/lib/logger';
 import { createAuditLog, getClientIP, getUserAgent } from '@/lib/api/audit';
 import { createWeighmentSchema, updateWeighmentSchema, approveWeighmentSchema, markWeighmentPaidSchema } from '@/schemas';
 import { generateWeighmentNumber } from '@/lib/utils';
@@ -89,58 +89,54 @@ export async function GET(request: NextRequest) {
         }
 
         const { user } = authResult;
-
         const { searchParams } = new URL(request.url);
         const { page, limit, skip } = parsePagination(searchParams);
         const { field: sortField, order: sortOrder } = parseSort(searchParams, SORTABLE_FIELDS);
 
+        // ✅ Build where clause based on role - same pattern as permits
         const where: Prisma.WeighmentWhereInput = {};
 
-        // Role-based filtering
-        if (isAdmin(user.role) || hasPermission(user.role, 'weighment:read')) {
-            // Admin/Plant Operator: Can view all, with optional filters
-
-            // Filter by status
-            const status = searchParams.get('status');
-            if (status) {
-                where.status = status as Prisma.EnumWeighmentStatusFilter['equals'];
-            }
-
-            // Filter by payment status
-            const paymentStatus = searchParams.get('paymentStatus');
-            if (paymentStatus) {
-                where.paymentStatus = paymentStatus as Prisma.EnumPaymentStatusFilter['equals'];
-            }
-
-            // Filter by plant
-            const plantId = searchParams.get('plantId');
-            if (plantId) {
-                where.plantId = plantId;
-            }
-
-            // Filter by permit
-            const permitId = searchParams.get('permitId');
-            if (permitId) {
-                where.permitId = permitId;
-            }
-
-            // Search by weighment number
-            const search = searchParams.get('search');
-            if (search) {
-                where.weighmentNumber = { contains: search, mode: 'insensitive' };
-            }
-        } else {
-            // Regular User: Can only view their own APPROVED weighments
-            where.permit = { userId: user.userId };
-            where.status = 'APPROVED';
-
-            // Allow search within their own weighments
-            const search = searchParams.get('search');
-            if (search) {
-                where.weighmentNumber = { contains: search, mode: 'insensitive' };
+        // ✅ Non-admins can only see their own weighments (or company weighments)
+        if (user.role !== 'ADMIN') {
+            if (user.companyId) {
+                // ✅ Company users can see weighments for their company's projects
+                where.permit = {
+                    project: { companyId: user.companyId }
+                };
+            } else {
+                // ✅ Individual users can only see their own permit weighments
+                where.permit = { userId: user.userId };
             }
         }
 
+        // ✅ Apply filters (same for all roles)
+        const status = searchParams.get('status');
+        if (status) {
+            where.status = status as Prisma.EnumWeighmentStatusFilter['equals'];
+        }
+
+        const paymentStatus = searchParams.get('paymentStatus');
+        if (paymentStatus) {
+            where.paymentStatus = paymentStatus as Prisma.EnumPaymentStatusFilter['equals'];
+        }
+
+        const plantId = searchParams.get('plantId');
+        if (plantId) {
+            where.plantId = plantId;
+        }
+
+        const permitId = searchParams.get('permitId');
+        if (permitId) {
+            where.permitId = permitId;
+        }
+
+        // Search by weighment number
+        const search = searchParams.get('search');
+        if (search) {
+            where.weighmentNumber = { contains: search, mode: 'insensitive' };
+        }
+
+        // ✅ Query with the same include structure as permits
         const [weighments, total] = await Promise.all([
             prisma.weighment.findMany({
                 where,
@@ -154,10 +150,26 @@ export async function GET(request: NextRequest) {
                             permitNumber: true,
                             status: true,
                             driverName: true,
+                            driverPhone: true,
                             vehicleNumber: true,
+                            vehicleType: true,
+                            user: {
+                                select: { id: true, name: true, email: true },
+                            },
+                            project: {
+                                select: { id: true, name: true, address: true, city: true },
+                            },
                         },
                     },
-                    plant: { select: { id: true, name: true, code: true } },
+                    plant: {
+                        select: {
+                            id: true,
+                            name: true,
+                            code: true,
+                            address: true,
+                            city: true,
+                        }
+                    },
                     approvedBy: { select: { id: true, name: true } },
                     paidBy: { select: { id: true, name: true } },
                 },
