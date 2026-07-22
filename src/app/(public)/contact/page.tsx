@@ -1,7 +1,6 @@
 'use client';
 
 import { PublicHeader } from '@/components/layout/public-header';
-import { PublicFooter } from '@/components/layout/public-footer';
 import { Button, Input, Card, CardContent } from '@/components/ui';
 import { useState } from 'react';
 import { toast } from "sonner"

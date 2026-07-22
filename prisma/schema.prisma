@@ -10,7 +10,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 // ============================================================
 // ENUMS
 // ============================================================
@@ -67,7 +66,7 @@ enum NotificationStatus {
   PENDING
   SENT
   FAILED
-  DEAD_LETTER 
+  DEAD_LETTER
 }
 
 enum NotificationPriority {
@@ -105,126 +104,128 @@ enum EntityType {
 // ============================================================
 
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  phone             String?   @unique
-  passwordHash      String
-  name              String
-  role              UserRole  @default(INDIVIDUAL)
-  isPhoneVerified   Boolean   @default(false)
-  isEmailVerified   Boolean   @default(false)
-  isActive          Boolean   @default(true)
+  id              String   @id @default(uuid())
+  email           String   @unique
+  phone           String?  @unique
+  passwordHash    String
+  name            String
+  role            UserRole @default(INDIVIDUAL)
+  isPhoneVerified Boolean  @default(false)
+  isEmailVerified Boolean  @default(false)
+  isActive        Boolean  @default(true)
 
-  isSystemAdmin   Boolean   @default(false)    
-  
+  isSystemAdmin Boolean @default(false)
+
   // Company association (nullable for individuals/guests)
-  companyId         String?
-  company           Company?  @relation(fields: [companyId], references: [id])
-  
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
   // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  lastLoginAt       DateTime?
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
   // Relations
-  permits           Permit[]  @relation("PermitUser")
+  permits           Permit[]           @relation("PermitUser")
   identityDocuments IdentityDocument[]
-  
+
   // Audit relations (who performed actions)
-  permitsApproved       Permit[]     @relation("PermitApprovedBy")
-  permitsRejected       Permit[]     @relation("PermitRejectedBy")
-  permitsCancelled      Permit[]     @relation("PermitCancelledBy")
-  permitsCompleted      Permit[]     @relation("PermitCompletedBy")
-  permitsUpdated        Permit[]     @relation("PermitUpdatedBy")
-  weighmentsApproved    Weighment[]  @relation("WeighmentApprovedBy")
-  weighmentsPaid        Weighment[]  @relation("WeighmentPaidBy")
-  weighmentsUpdated     Weighment[]  @relation("WeighmentUpdatedBy")
-  
-  auditLogs         AuditLog[]
-  notifications     Notification[]
-  refreshTokens     RefreshToken[]
-  
+  permitsApproved    Permit[]    @relation("PermitApprovedBy")
+  permitsRejected    Permit[]    @relation("PermitRejectedBy")
+  permitsCancelled   Permit[]    @relation("PermitCancelledBy")
+  permitsCompleted   Permit[]    @relation("PermitCompletedBy")
+  permitsUpdated     Permit[]    @relation("PermitUpdatedBy")
+  weighmentsApproved Weighment[] @relation("WeighmentApprovedBy")
+  weighmentsPaid     Weighment[] @relation("WeighmentPaidBy")
+  weighmentsUpdated  Weighment[] @relation("WeighmentUpdatedBy")
+
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  refreshTokens RefreshToken[]
+
+  accountDeletionRequests AccountDeletionRequest[]
+
   @@index([email])
   @@index([phone])
   @@index([companyId])
 }
 
 model Company {
-  id                String    @id @default(uuid())
-  name              String
-  registrationNumber String?  @unique
-  gstNumber         String?   @unique
-  address           String?
-  city              String?
-  state             String?
-  pincode           String?
-  contactEmail      String?
-  contactPhone      String?
-  isActive          Boolean   @default(true)
-  
+  id                 String  @id @default(uuid())
+  name               String
+  registrationNumber String? @unique
+  gstNumber          String? @unique
+  address            String?
+  city               String?
+  state              String?
+  pincode            String?
+  contactEmail       String?
+  contactPhone       String?
+  isActive           Boolean @default(true)
+
   // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  users             User[]
-  projects          Project[]
-  permits           Permit[]
-  
+  users    User[]
+  projects Project[]
+  permits  Permit[]
+
   @@index([name])
 }
 
 model Project {
-  id                String    @id @default(uuid())
-  name              String
-  description       String?
-  address           String
-  city              String
-  state             String
-  pincode           String
-  latitude          Float?
-  longitude         Float?
-  isActive          Boolean   @default(true)
-  
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  address     String
+  city        String
+  state       String
+  pincode     String
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean @default(true)
+
   // Company association
-  companyId         String
-  company           Company   @relation(fields: [companyId], references: [id])
-  
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
   // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  permits           Permit[]
-  
+  permits Permit[]
+
   @@index([companyId])
   @@index([city])
 }
 
 model Plant {
-  id                String    @id @default(uuid())
-  name              String
-  code              String    @unique
-  address           String
-  city              String
-  state             String
-  pincode           String
-  latitude          Float?
-  longitude         Float?
-  contactEmail      String?
-  contactPhone      String?
-  operatingHours    String?
-  capacity          Int?      // tons per day
-  isActive          Boolean   @default(true)
-  
+  id             String  @id @default(uuid())
+  name           String
+  code           String  @unique
+  address        String
+  city           String
+  state          String
+  pincode        String
+  latitude       Float?
+  longitude      Float?
+  contactEmail   String?
+  contactPhone   String?
+  operatingHours String?
+  capacity       Int? // tons per day
+  isActive       Boolean @default(true)
+
   // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  permits           Permit[]
-  weighments        Weighment[]
-  
+  permits    Permit[]
+  weighments Weighment[]
+
   @@index([code])
   @@index([city])
 }
@@ -234,88 +235,88 @@ model Plant {
 // ============================================================
 
 model Permit {
-  id                String        @id @default(uuid())
-  permitNumber      String        @unique
-  token             String        @unique @default(uuid())
-  
-  // Status & Type
-  status            PermitStatus  @default(DRAFT)
-  wasteType         WasteType
-  
-  // Estimated waste info
-  estimatedWeight   Float?        // in kg
-  estimatedVolume   Float?        // in cubic meters
-  wasteDescription  String?
-  
-  // Pickup details
-  projectId         String?
-  project           Project?      @relation(fields: [projectId], references: [id])
-  
-  // Company association (for Company Users)
-  companyId         String?
-  company           Company?      @relation(fields: [companyId], references: [id])
+  id           String @id @default(uuid())
+  permitNumber String @unique
+  token        String @unique @default(uuid())
 
-  pickupAddress     String
-  pickupCity        String
-  pickupState       String
-  pickupPincode     String
-  pickupLatitude    Float? 
-  pickupLongitude   Float?
-  
+  // Status & Type
+  status    PermitStatus @default(DRAFT)
+  wasteType WasteType
+
+  // Estimated waste info
+  estimatedWeight  Float? // in kg
+  estimatedVolume  Float? // in cubic meters
+  wasteDescription String?
+
+  // Pickup details
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  // Company association (for Company Users)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  pickupAddress   String
+  pickupCity      String
+  pickupState     String
+  pickupPincode   String
+  pickupLatitude  Float?
+  pickupLongitude Float?
+
   // Destination details (to Plant)
-  plantId           String
-  plant             Plant         @relation(fields: [plantId], references: [id])
-  
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id])
+
   // Driver/Vehicle info
-  driverName        String?
-  driverPhone       String?
-  vehicleNumber     String?
-  vehicleType       String?
-  licenseNumber     String?
-  
+  driverName    String?
+  driverPhone   String?
+  vehicleNumber String?
+  vehicleType   String?
+  licenseNumber String?
+
   // Validity
-  validFrom         DateTime?
-  validUntil        DateTime?
-  
+  validFrom  DateTime?
+  validUntil DateTime?
+
   // User who created permit
-  userId            String
-  user              User          @relation("PermitUser", fields: [userId], references: [id])
-  
+  userId String
+  user   User   @relation("PermitUser", fields: [userId], references: [id])
+
   // Audit fields - Action attribution
-  approvedByUserId  String?
-  approvedBy        User?         @relation("PermitApprovedBy", fields: [approvedByUserId], references: [id])
-  approvedAt        DateTime?
-  
-  rejectedByUserId  String?
-  rejectedBy        User?         @relation("PermitRejectedBy", fields: [rejectedByUserId], references: [id])
-  rejectedAt        DateTime?
-  rejectionReason   String?
-  
-  cancelledByUserId String?
-  cancelledBy       User?         @relation("PermitCancelledBy", fields: [cancelledByUserId], references: [id])
-  cancelledAt       DateTime?
+  approvedByUserId String?
+  approvedBy       User?     @relation("PermitApprovedBy", fields: [approvedByUserId], references: [id])
+  approvedAt       DateTime?
+
+  rejectedByUserId String?
+  rejectedBy       User?     @relation("PermitRejectedBy", fields: [rejectedByUserId], references: [id])
+  rejectedAt       DateTime?
+  rejectionReason  String?
+
+  cancelledByUserId  String?
+  cancelledBy        User?     @relation("PermitCancelledBy", fields: [cancelledByUserId], references: [id])
+  cancelledAt        DateTime?
   cancellationReason String?
-  
+
   completedByUserId String?
-  completedBy       User?         @relation("PermitCompletedBy", fields: [completedByUserId], references: [id])
+  completedBy       User?     @relation("PermitCompletedBy", fields: [completedByUserId], references: [id])
   completedAt       DateTime?
-  
-  updatedByUserId   String?
-  updatedBy         User?         @relation("PermitUpdatedBy", fields: [updatedByUserId], references: [id])
-  
+
+  updatedByUserId String?
+  updatedBy       User?   @relation("PermitUpdatedBy", fields: [updatedByUserId], references: [id])
+
   // Transit tracking
-  transitStartedAt  DateTime?
-  
+  transitStartedAt DateTime?
+
   // Timestamps
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  submittedAt       DateTime?
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  submittedAt DateTime?
+
   // Relations
-  wasteEvidences    WasteEvidence[]
-  weighments        Weighment[]
-  notifications     Notification[]
-  
+  wasteEvidences WasteEvidence[]
+  weighments     Weighment[]
+  notifications  Notification[]
+
   @@index([permitNumber])
   @@index([token])
   @@index([status])
@@ -327,46 +328,46 @@ model Permit {
 }
 
 model WasteEvidence {
-  id                String    @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // File info
-  fileName          String
-  filePath          String
-  fileSize          Int
-  mimeType          String
-  
+  fileName String
+  filePath String
+  fileSize Int
+  mimeType String
+
   // Optional metadata
-  description       String?
-  capturedAt        DateTime?
-  latitude          Float?
-  longitude         Float?
-  
+  description String?
+  capturedAt  DateTime?
+  latitude    Float?
+  longitude   Float?
+
   // Permit association
-  permitId          String
-  permit            Permit    @relation(fields: [permitId], references: [id], onDelete: Cascade)
-  
+  permitId String
+  permit   Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+
   // Timestamps
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([permitId])
 }
 
 model IdentityDocument {
-  id                String       @id @default(uuid())
-  type              DocumentType
-  documentNumber    String
-  filePath          String?
-  isVerified        Boolean      @default(false)
-  
+  id             String       @id @default(uuid())
+  type           DocumentType
+  documentNumber String
+  filePath       String?
+  isVerified     Boolean      @default(false)
+
   // User association
-  userId            String
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Timestamps
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([userId, type])
   @@index([userId])
 }
@@ -376,56 +377,56 @@ model IdentityDocument {
 // ============================================================
 
 model Weighment {
-  id                String           @id @default(uuid())
-  weighmentNumber   String           @unique
-  
+  id              String @id @default(uuid())
+  weighmentNumber String @unique
+
   // Permit association
-  permitId          String
-  permit            Permit           @relation(fields: [permitId], references: [id])
-  
+  permitId String
+  permit   Permit @relation(fields: [permitId], references: [id])
+
   // Plant where weighment occurred
-  plantId           String
-  plant             Plant            @relation(fields: [plantId], references: [id])
-  
+  plantId String
+  plant   Plant  @relation(fields: [plantId], references: [id])
+
   // Weighment data
   firstWeight       Float?
-  firstWeighmentAt  DateTime?        @db.Timestamptz(6)
+  firstWeighmentAt  DateTime? @db.Timestamptz(6)
   secondWeight      Float?
-  secondWeighmentAt DateTime?        @db.Timestamptz(6)
-  netWeight         Float?           // kg (calculated: second - first or absolute difference)
-  
+  secondWeighmentAt DateTime? @db.Timestamptz(6)
+  netWeight         Float? // kg (calculated: second - first or absolute difference)
+
   // Evidence
-  fileUrl           String?          // URL for weighment slip PDF
-  
+  fileUrl String? // URL for weighment slip PDF
+
   // Status
-  status            WeighmentStatus  @default(PENDING)
-  
+  status WeighmentStatus @default(PENDING)
+
   // Embedded Payment fields (no separate Payment table)
-  paymentStatus     PaymentStatus    @default(PENDING)
-  paymentAmount     Float?
-  paymentMethod     String?
-  paymentReference  String?
-  
+  paymentStatus    PaymentStatus @default(PENDING)
+  paymentAmount    Float?
+  paymentMethod    String?
+  paymentReference String?
+
   // Audit fields - Action attribution
-  approvedByUserId  String?
-  approvedBy        User?            @relation("WeighmentApprovedBy", fields: [approvedByUserId], references: [id])
-  approvedAt        DateTime?
-  
-  paidByUserId      String?
-  paidBy            User?            @relation("WeighmentPaidBy", fields: [paidByUserId], references: [id])
-  paidAt            DateTime?
-  
-  updatedByUserId   String?
-  updatedBy         User?            @relation("WeighmentUpdatedBy", fields: [updatedByUserId], references: [id])
-  
-  rejectionReason   String?
-  notes             String?
-  
+  approvedByUserId String?
+  approvedBy       User?     @relation("WeighmentApprovedBy", fields: [approvedByUserId], references: [id])
+  approvedAt       DateTime?
+
+  paidByUserId String?
+  paidBy       User?     @relation("WeighmentPaidBy", fields: [paidByUserId], references: [id])
+  paidAt       DateTime?
+
+  updatedByUserId String?
+  updatedBy       User?   @relation("WeighmentUpdatedBy", fields: [updatedByUserId], references: [id])
+
+  rejectionReason String?
+  notes           String?
+
   // Timestamps
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  weighedAt         DateTime?
-  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  weighedAt DateTime?
+
   @@index([permitId])
   @@index([status])
   @@index([createdAt])
@@ -436,37 +437,37 @@ model Weighment {
 // ============================================================
 
 model RefreshToken {
-  id                String    @id @default(uuid())
-  token             String    @unique
-  
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  expiresAt         DateTime
-  createdAt         DateTime  @default(now())
-  revokedAt         DateTime?
-  
+  id    String @id @default(uuid())
+  token String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
   // Device/session info (optional)
-  userAgent         String?
-  ipAddress         String?
-  
+  userAgent String?
+  ipAddress String?
+
   @@index([userId])
   @@index([token])
 }
 
 model OTPVerification {
-  id                String    @id @default(uuid())
-  phone             String
-  otp               String
-  purpose           String    // LOGIN, REGISTER, PERMIT_CREATE
-  
-  isUsed            Boolean   @default(false)
-  attempts          Int       @default(0)
-  
-  expiresAt         DateTime
-  createdAt         DateTime  @default(now())
-  usedAt            DateTime?
-  
+  id      String @id @default(uuid())
+  phone   String
+  otp     String
+  purpose String // LOGIN, REGISTER, PERMIT_CREATE
+
+  isUsed   Boolean @default(false)
+  attempts Int     @default(0)
+
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+
   @@index([phone, purpose])
   @@index([expiresAt])
 }
@@ -476,44 +477,44 @@ model OTPVerification {
 // ============================================================
 
 model Notification {
-  id                String             @id @default(uuid())
-  type              NotificationType
-  status            NotificationStatus @default(PENDING)
+  id     String             @id @default(uuid())
+  type   NotificationType
+  status NotificationStatus @default(PENDING)
 
-  priority          NotificationPriority @default(STANDARD)
-  expiresAt         DateTime?
-  
+  priority  NotificationPriority @default(STANDARD)
+  expiresAt DateTime?
+
   // Recipient
-  recipientPhone    String?
-  recipientEmail    String?
-  
-  // Content
-  subject           String?
-  message           String
-  
-  // Optional associations
-  userId            String?
-  user              User?              @relation(fields: [userId], references: [id])
-  
-  permitId          String?
-  permit            Permit?            @relation(fields: [permitId], references: [id])
-  
-  // Delivery tracking
-  sentAt            DateTime?
-  deliveredAt       DateTime?
-  failureReason     String?
+  recipientPhone String?
+  recipientEmail String?
 
-  retryCount        Int                @default(0)    // Track number of retry attempts
-  nextRetryAt       DateTime?                          // When to retry next
-  
+  // Content
+  subject String?
+  message String
+
+  // Optional associations
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  permitId String?
+  permit   Permit? @relation(fields: [permitId], references: [id])
+
+  // Delivery tracking
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  failureReason String?
+
+  retryCount  Int       @default(0) // Track number of retry attempts
+  nextRetryAt DateTime? // When to retry next
+
   // Timestamps
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([permitId])
   @@index([expiresAt, priority])
   @@index([status])
-   @@index([status, nextRetryAt])  
+  @@index([status, nextRetryAt])
 }
 
 // ============================================================
@@ -521,35 +522,35 @@ model Notification {
 // ============================================================
 
 model AuditLog {
-  id                String      @id @default(uuid())
-  
+  id String @id @default(uuid())
+
   // What entity was affected
-  entityType        EntityType
-  entityId          String
-  
+  entityType EntityType
+  entityId   String
+
   // What action was performed
-  action            AuditAction
-  
+  action AuditAction
+
   // Who performed the action
   performedByUserId String
-  performedBy       User        @relation(fields: [performedByUserId], references: [id])
-  
+  performedBy       User   @relation(fields: [performedByUserId], references: [id])
+
   // Additional context (JSON)
-  metadata          Json?
-  
+  metadata Json?
+
   // Previous state (for UPDATE actions)
-  previousState     Json?
-  
+  previousState Json?
+
   // New state (for CREATE/UPDATE actions)
-  newState          Json?
-  
+  newState Json?
+
   // IP and user agent for security audits
-  ipAddress         String?
-  userAgent         String?
-  
+  ipAddress String?
+  userAgent String?
+
   // Timestamp (append-only, no updatedAt)
-  createdAt         DateTime    @default(now())
-  
+  createdAt DateTime @default(now())
+
   @@index([entityType, entityId])
   @@index([performedByUserId])
   @@index([action])
@@ -557,31 +558,49 @@ model AuditLog {
 }
 
 model LegacyWeighmentImport {
-  id              String @id @default(uuid())
+  id String @id @default(uuid())
 
-  slipNo          String
-  vehicleNo       String
-  material        String?
+  slipNo    String
+  vehicleNo String
+  material  String?
 
-  firstWeight     Float?
-  secondWeight    Float?
-  netWeight       Float?
+  firstWeight  Float?
+  secondWeight Float?
+  netWeight    Float?
 
-  firstWeighAt    DateTime?
-  secondWeighAt   DateTime?
+  firstWeighAt  DateTime?
+  secondWeighAt DateTime?
 
-  supplier        String?
-  location        String?
-  customer        String?
+  supplier String?
+  location String?
+  customer String?
 
-  rawData         Json
+  rawData Json
 
-  importStatus    String @default("PENDING")
-  errors          Json?
+  importStatus String @default("PENDING")
+  errors       Json?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([slipNo])
   @@index([vehicleNo])
 }
 
+model AccountDeletionRequest {
+  id String @id @default(uuid())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  email  String
+  phone  String?
+  reason String?
+
+  status String @default("PENDING")
+
+  requestedAt DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([email])
+  @@index([status])
+}
